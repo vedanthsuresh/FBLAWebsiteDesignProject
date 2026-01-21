@@ -1,0 +1,336 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "events": "Événements",
+    "exhibitions": "Expositions",
+    "featuredArts": "Art Vedette",
+    "visitorInfo": "Infos Visiteurs",
+    "newsletter": "Bulletin Mensuel",
+    "tickets": "Billets",
+    "membership": "Adhésion"
+  },
+  "events": {
+    "subtitle": "Découvrez la culture vibrante d'Atlanta"
+  },
+  "home": {
+    "hero_title": "Musée d'Art High",
+    "hero_subtitle": "Découvrez le premier musée d'art du Sud-Est.",
+    "cta_tickets": "Réserver des Billets",
+    "cta_membership": "Devenir Membre",
+    "cta_explore": "Explorer la Collection",
+    "about_title": "À Propos",
+    "about_p1": "Fondé en 1905 sous le nom d'Atlanta Art Association, le High Museum of Art est devenu la principale institution artistique du sud-est des États-Unis. Nous sommes les gardiens d'une collection permanente couvrant sept départements de conservation dédiés, notamment l'art africain, l'art américain et l'une des plus importantes collections d'art populaire du Sud et afro-américain du pays. Notre campus est un monument architectural, avec des bâtiments conçus par les architectes lauréats du prix Pritzker Richard Meier (1983) et Renzo Piano (2005), qui offrent ensemble plus de 312 000 pieds carrés d'espace de galerie dédiés à rendre l'art accessible à tous.",
+    "stats_works": "Œuvres d'Art",
+    "stats_sqft": "Pieds Carrés",
+    "stats_visitors": "Visiteurs Annuels",
+    "stats_established": "Établi en",
+    "stats_verified": "Vérifié via les registres institutionnels et l'audit AIA 2024",
+    "reviews_title": "Avis des Visiteurs"
+  },
+  "featured": {
+    "subtitle": "Découvrez plus de 18 000 œuvres extraordinaires",
+    "see_more": "Découvrez tout cela et bien plus encore au High Museum of Art"
+  },
+  "visitor": {
+    "subtitle": "Planifiez votre prochaine visite inspirante",
+    "loc_head": "Emplacement",
+    "marta_hint": "Juste en face de la station Arts Center via MARTA.",
+    "arch_head": "Un Monument Architectural",
+    "amenities_head": "Services sur Place",
+    "hours_head": "Horaires",
+    "tickets_head": "Billets",
+    "live_status": "Statut Actuel",
+    "arch_text1": "Le High est le seul musée au monde à présenter des bâtiments permanents majeurs conçus par deux architectes lauréats du prix Pritzker. Le bâtiment blanc emblématique de Richard Meier, datant de 1983, a été cité par ",
+    "arch_text1_strong": "l'American Institute of Architects (AIA)",
+    "arch_text1_end": " comme l'une des dix meilleures œuvres de l'architecture américaine des années 1980.",
+    "arch_text2": "L'agrandissement de 2005 par Renzo Piano a ajouté trois nouveaux bâtiments, triplant la capacité du musée et introduisant un système de toit révolutionnaire 'light scoop' qui filtre la lumière naturelle dans les galeries du ciel.",
+    "dining": "RESTAURATION",
+    "dining_text": "Restaurant à service complet",
+    "shop": "BOUTIQUE DU MUSÉE",
+    "shop_text": "Cadeaux et livres sélectionnés",
+    "families": "FAMILLES",
+    "families_text": "Espaces de jeux dédiés",
+    "accessibility": "Accessibilité",
+    "accessibility_text": "Ascenseurs et accès en fauteuil roulant",
+    "purchase_tickets": "Acheter des Billets en Ligne",
+    "tickets_desk": "Billets également disponibles à l'accueil.",
+    "tue_sat": "Mar – Sam",
+    "sun": "Dimanche",
+    "mon": "Lundi",
+    "closed": "Fermé",
+    "second_sundays": "Seconds Dimanches",
+    "second_sundays_text_beginning": "L'entrée est gratuite le deuxième dimanche de chaque mois. ",
+    "second_sundays_text_visitor_number": "Plus de 500 000 visiteurs",
+    "second_sundays_text_end": " participent à nos programmes chaque année, selon les rapports d'assiduité institutionnels.",
+    "verified_resources": "Ressources Visiteurs Vérifiées",
+    "resource1": "Histoire de l'architecture et citation AIA 1991 vérifiées par",
+    "resource1_strong_source1": "les archives Richard Meier",
+    "resource1_strong_source2": " Architectural Record",
+    "and": "et",
+    "period": ".",
+    "resource2": "Détails de l'extension Renzo Piano (2005) fournis par ",
+    "resource2_strong_source1": "Renzo Piano Building Workshop (RPBW)",
+    "resource3": "Transport et accès MARTA confirmés via les guides officiels de ",
+    "resource3_strong_source1": "la Metropolitan Atlanta Rapid Transit Authority (MARTA).",
+    "resource3_end": "",
+    "resource4": "Données sur la fréquentation et l'impact communautaire provenant du ",
+    "resource4_strong_source1": "rapport annuel 2024 du High Museum of Art"
+  },
+  "footer": {
+    "nav_head": "Navigation",
+    "res_head": "Ressources",
+    "follow_head": "Suivez-nous",
+    "disclaimer": "Ce site Web a été développé dans le cadre d'un événement compétitif de la FBLA (Future Business Leaders of America) : Exploration de la conception de sites Web.",
+    "educational": "Version Éducative Professionnelle."
+  },
+  "reviews": [
+    {
+      "text": "Super musée... Ils l'ont organisé avec tant de soin... J'adore le niveau d'art folklorique et toutes les œuvres d'art surréalistes et spirituelles.",
+      "author": "Candice H.",
+      "role": "Guide Local"
+    },
+    {
+      "text": "C'était exceptionnel. Je le recommande vivement",
+      "author": "Fopma D.",
+      "role": "Visiteur Vérifié"
+    },
+    {
+      "text": "Un endroit merveilleux pour s'inspirer et s'imprégner de l'art le plus incroyable de Géorgie... achetez un abonnement annuel... Vous pourriez voir quelque chose que vous n'auriez normalement pas l'occasion d'expérimenter et cela pourrait changer votre cœur et votre esprit au passage.",
+      "author": "Brian C.",
+      "role": "Guide Local"
+    },
+    {
+      "text": "C'est un musée d'art de premier ordre. Je le recommande vivement.",
+      "author": "Brad D.",
+      "role": "Visiteur Vérifié"
+    },
+    {
+      "text": "Une excellente expérience comme toujours. Je me fais un devoir d'assister à leurs expositions chaque fois que je suis en ville. Je recommande vivement cette présentation actuelle. Elle ne décevra pas.",
+      "author": "Janna K.",
+      "role": "Guide Local"
+    }
+  ],
+  "artworks": [
+    {
+      "artwork": "Masque",
+      "name": "Artiste Ibibio, Société Ekpo, Nigeria",
+      "description": "Un masque en bois et pigment du XXe siècle représentant l'autorité spirituelle de la société Ekpo. De tels artefacts servaient d'exécuteurs de la loi morale au sein de la communauté.",
+      "metadata": "XXe Siècle • Bois, Pigment • Dépt. Art Africain"
+    },
+    {
+      "artwork": "Mami Wata",
+      "name": "Artiste Igbo, Nigeria",
+      "description": "Une représentation vibrante de l'esprit de l'eau Mami Wata, mélangeant les croyances indigènes avec les influences mondiales pour symboliser la richesse et le pouvoir.",
+      "metadata": "XXe Siècle • Technique Mixte • Dépt. Art Africain"
+    },
+    {
+      "artwork": "Étude pour le Quaker",
+      "name": "Andrew Wyeth",
+      "description": "Une étude technique de deux manteaux anciens dans l'atelier de Wyeth, ayant appartenu à l'artiste quaker Howard Pyle. (Source : Registres du Musée High)",
+      "metadata": "1975 • Aquarelle sur papier • Dépt. Art Américain"
+    },
+    {
+      "artwork": "Pêcheurs d'Étaples",
+      "name": "Henry Ossawa Tanner",
+      "description": "Une exploration magistrale de la lumière et de l'esprit humain par le premier peintre afro-américain à acquérir une renommée internationale.",
+      "metadata": "1923 • Huile sur Toile • Dépt. Art Américain"
+    },
+    {
+      "artwork": "Blue Loves Blue",
+      "name": "Hella Jongerius",
+      "description": "Faisant partie de la série \"Technicolor\", cette œuvre défie les normes industrielles de couleur grâce à des techniques textiles artisanales.",
+      "metadata": "2009 • Textiles Industriels • Dépt. Arts Décoratifs"
+    },
+    {
+      "artwork": "Untitled (Grey)",
+      "name": "Hella Jongerius",
+      "description": "Une enquête sur la profondeur et la texture monochromatiques, comblant le fossé entre la production de masse et l'artisanat individuel.",
+      "metadata": "2009 • Laine et Coton • Dépt. Arts Décoratifs"
+    },
+    {
+      "artwork": "Chaumière en Normandie",
+      "name": "Alfred Sisley",
+      "description": "Une œuvre séminale de la peinture de paysage française qui a ouvert la voie au mouvement impressionniste. (Source : Registres du Musée High)",
+      "metadata": "1894 • Huile sur Toile • Dépt. Art Européen"
+    },
+    {
+      "artwork": "Le Paysan",
+      "name": "Aimé-Jules Dalou",
+      "description": "Une sculpture en bronze créée entre 1898 et 1899, démontrant l'intérêt de l'artiste pour la dignité et le travail de la classe ouvrière. (Source : Registres du Musée High)",
+      "metadata": "1898–1899 • Bronze • Dépt. Art Européen"
+    },
+    {
+      "artwork": "Un Ami dans le Besoin",
+      "name": "Henry Church",
+      "description": "Une œuvre brute et évocatrice de l'un des artistes autodidactes les plus importants du XXe siècle.",
+      "metadata": "1939 • Peinture sur Carton • Dépt. Art Populaire"
+    },
+    {
+      "artwork": "Untitled (Triangles)",
+      "name": "Nellie Mae Rowe",
+      "description": "Les motifs géométriques vibrants de Rowe représentent les visions spirituelles extatiques de la tradition autodidacte du Sud. (Source : Archives du Musée High)",
+      "metadata": "XXe Siècle • Technique Mixte • Dépt. Art Populaire"
+    }
+  ],
+  "calendar": {
+    "no_events": "Aucun événement prévu",
+    "closed_for": "Fermé pour",
+    "typically_closed": "Généralement fermé le lundi pour l'entretien des galeries.",
+    "open_today": "Ouvert aujourd'hui. L'entrée générale comprend toutes les collections et expositions.",
+    "back_to_events": "Retour aux Événements",
+    "general_admission": "Entrée Générale",
+    "ga_desc": "Explorez notre collection permanente comprenant plus de 18 000 œuvres d'art couvrant plusieurs siècles et mouvements artistiques. L'entrée générale comprend l'accès à toutes les galeries et expositions.",
+    "status": "Statut",
+    "closed_today_desc": "Le musée est fermé aujourd'hui en raison du jour férié."
+  },
+  "tickets": {
+    "title": "Sélectionner des Billets",
+    "contact": "Informations de Contact",
+    "full_name": "Nom Complet",
+    "email": "Adresse Email",
+    "order_summary": "Résumé de la Commande",
+    "back": "Retour",
+    "complete": "Terminer l'Achat",
+    "thank_you": "Merci",
+    "confirmed": "Vos billets ont été confirmés. Un e-mail de confirmation a été envoyé à",
+    "order_id": "ID de Commande",
+    "return_home": "Retour à l'Accueil",
+    "secure_checkout": "Paiement Sécurisé Propulsé par HMA Systems",
+    "types": {
+      "adult": "Adulte",
+      "student": "Étudiant (avec ID)",
+      "senior": "Senior (65+)",
+      "member": "Membre",
+      "free": "Gratuit"
+    }
+  },
+  "membership": {
+    "title": "DEVENIR MEMBRE",
+    "subtitle": "Rejoignez plus de 30 000 foyers soutenant le plus grand musée d'art du Sud-Est. Profitez d'un accès illimité, d'événements exclusifs et de la satisfaction de soutenir les arts à Atlanta.",
+    "select_level": "SÉLECTIONNEZ VOTRE NIVEAU",
+    "join_now": "Rejoindre Maintenant",
+    "official_source": "Source Officielle : High Museum of Art - Adhésions (Audit 2024)",
+    "sign_up": "S'INSCRIRE",
+    "ready_to_join": "Prêt à rejoindre notre communauté ? Entrez vos coordonnées ci-dessous pour recevoir un e-mail de confirmation réel.",
+    "create_password": "Créer un Mot de Passe",
+    "confirm": "Confirmer l'Adhésion",
+    "welcome": "BIENVENUE",
+    "received": "Votre demande d'adhésion a été reçue avec succès.",
+    "sent_to": "Un e-mail de confirmation a été envoyé à :",
+    "thank_you": "Merci de soutenir le High.",
+    "back_to_levels": "Retour aux niveaux",
+    "manage_membership": "GÉRER OU ANNULER L'ADHÉSION",
+    "cancel_desc": "Entrez vos coordonnées pour annuler définitivement votre adhésion.",
+    "confirm_cancel": "Annuler l'adhésion maintenant",
+    "confirm_password": "Confirmer le mot de passe",
+    "matching_error": "Les mots de passe ne correspondent pas.",
+    "benefits": [
+      {
+        "title": "Entrée Illimitée",
+        "text": "Entrée illimitée en journée à la collection permanente et à la plupart des expositions spéciales."
+      },
+      {
+        "title": "Parking Gratuit",
+        "text": "Parking gratuit en journée dans le garage du Woodruff Arts Center (selon disponibilité)."
+      },
+      {
+        "title": "Réductions",
+        "text": "Réductions pour les membres à la boutique du musée, au café, aux cours et aux programmes publics."
+      },
+      {
+        "title": "Accès Anticipé",
+        "text": "Prévente de billets et accès anticipat pour High Frequency Fridays et Friday Jazz."
+      },
+      {
+        "title": "Événements Membres",
+        "text": "Invitations à des avant-premières exclusives pour les membres, des visites et des événements sociaux spéciaux."
+      },
+      {
+        "title": "Accès Réciproque",
+        "text": "Entrée gratuite dans des centaines de musées à travers l'Amérique du Nord (certains niveaux)."
+      }
+    ],
+    "levels": [
+      {
+        "id": "student",
+        "name": "Étudiant",
+        "description": "Option la moins coûteuse avec les avantages de base pour les étudiants à plein temps.",
+        "features": [
+          "Entrée Illimitée",
+          "Réductions Boutique/Café",
+          "Accès Anticipé aux Événements"
+        ]
+      },
+      {
+        "id": "individual",
+        "name": "Individuel",
+        "description": "Meilleur rapport qualité-prix pour les visiteurs en solo ; comprend l'entrée, le parking et les laissez-passer d'invité.",
+        "features": [
+          "Avantages Standards",
+          "Parking Diurne Gratuit",
+          "2 Laissez-passer Invités"
+        ]
+      },
+      {
+        "id": "family",
+        "name": "Dual/Famille",
+        "description": "Couvre deux adultes plus l'entrée gratuite pour les enfants/petits-enfants (17 ans et moins).",
+        "features": [
+          "Tous les Avantages Individuels",
+          "Entrée pour 2 Adultes",
+          "Entrée Gratuite pour les Enfants"
+        ]
+      },
+      {
+        "id": "contributing",
+        "name": "Contributeur",
+        "description": "Ajoute plus de laissez-passer d'invité, un laissez-passer pour accompagnateur et un accès réciproque élargi aux musées.",
+        "features": [
+          "Passe Accompagnateur",
+          "Entrée Réciproque",
+          "4 Laissez-passer Invités"
+        ]
+      },
+      {
+        "id": "patron",
+        "name": "Patron",
+        "description": "Comprend des visites mensuelles des expositions, des réductions plus élevées et des avantages élargis.",
+        "features": [
+          "Visites Mensuelles",
+          "15% de Réduction Boutique",
+          "Support Prioritaire"
+        ]
+      },
+      {
+        "id": "circle",
+        "name": "Cercle du Directeur",
+        "description": "Expériences VIP telles que des visites guidées par les conservateurs, des événements privés et un accès aux coulisses.",
+        "features": [
+          "Visites Guidées par les Conservateurs",
+          "Événements Privés",
+          "Avantages Voyage VIP"
+        ]
+      }
+    ]
+  },
+  "newsletter": {
+    "title": "LA CHRONIQUE CURATÉE",
+    "subtitle": "Aperçus Mensuels du High Museum of Art",
+    "exclusive": "CONTENU EXCLUSIF POUR LES MEMBRES",
+    "locked": "Connexion Membre Requise",
+    "unlock": "Veuillez vous connecter en tant que membre pour lire l'article vedette de ce mois.",
+    "sign_in": "Se Connecter",
+    "signing_in": "Connexion en cours...",
+    "wrong_password": "Mot de passe incorrect.",
+    "no_member": "Email non trouvé. Veuillez d'abord adhérer en tant que membre !",
+    "no_news": "Aucun contenu de bulletin disponible pour le moment.",
+    "professional_source": "Source : Archives internes du High et calendrier des événements de janvier 2026"
+  },
+  "chatbot": {
+    "title": "Assistant HMA",
+    "welcome": "Bonjour ! Je suis l'assistant du High Museum. Comment puis-je vous aider aujourd'hui ?",
+    "placeholder": "Tapez votre question...",
+    "send": "Envoyer",
+    "close": "Fermer le Chat"
+  }
+}

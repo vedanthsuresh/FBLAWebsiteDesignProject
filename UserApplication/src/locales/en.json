@@ -1,0 +1,336 @@
+{
+  "nav": {
+    "home": "Home",
+    "events": "Events",
+    "exhibitions": "Exhibitions",
+    "featuredArts": "Featured Arts",
+    "visitorInfo": "Visitor Information",
+    "newsletter": "Monthly Newsletter",
+    "tickets": "Tickets",
+    "membership": "Membership"
+  },
+  "events": {
+    "subtitle": "Experience the vibrant culture of Atlanta"
+  },
+  "home": {
+    "hero_title": "High Museum of Art",
+    "hero_subtitle": "Experience the premier art museum in the Southeast.",
+    "cta_tickets": "Book Tickets",
+    "cta_membership": "Join Membership",
+    "cta_explore": "Explore Collection",
+    "about_title": "About Us",
+    "about_p1": "Founded in 1905 as the Atlanta Art Association, the High Museum of Art has evolved into the premier art institution in the Southeastern United States. We are custodian to a permanent collection of spanning seven dedicated curatorial departments including African Art, American Art, and one of the nation's leading collections of Southern and African American folk art. Our campus is an architectural landmark, featuring buildings designed by Pritzker Prize-winning architects Richard Meier (1983) and Renzo Piano (2005), which together offer over 312,000 square feet of gallery space dedicated to making art accessible to all.",
+    "stats_works": "Works of Art",
+    "stats_sqft": "Square Feet",
+    "stats_visitors": "Annual Visitors",
+    "stats_established": "Established",
+    "stats_verified": "Verified via Institutional Records & AIA 2024 Audit",
+    "reviews_title": "Visitor Reviews"
+  },
+  "featured": {
+    "subtitle": "Discover over 18,000 extraordinary works",
+    "see_more": "See all of these and more at the High Museum of Art"
+  },
+  "visitor": {
+    "subtitle": "Plan your next inspiring visit",
+    "loc_head": "Location",
+    "marta_hint": "Just across from the Arts Center Station via MARTA.",
+    "arch_head": "An Architectural Landmark",
+    "amenities_head": "On-Site Amenities",
+    "hours_head": "Hours",
+    "tickets_head": "Tickets",
+    "live_status": "Current Status",
+    "arch_text1": "The High is the only museum in the world to feature major permanent buildings by two Pritzker Prize-winning architects. Richard Meier's 1983 signature white building was cited by the ",
+    "arch_text1_strong": "American Institute of Architects (AIA)",
+    "arch_text1_end": " as one of the ten best works of American architecture in the 1980s.",
+    "arch_text2": "The 2005 expansion by Renzo Piano added three new buildings, tripling the museum's capacity and introducing a revolutionary 'light scoop' roof system that filters natural light into the skyway galleries.",
+    "dining": "DINING",
+    "dining_text": "Full-service restaurant",
+    "shop": "MUSEUM SHOP",
+    "shop_text": "Curated gifts & books",
+    "families": "FAMILIES",
+    "families_text": "Dedicated play spaces",
+    "accessibility": "Accessibility",
+    "accessibility_text": "Elevators & wheelchair access",
+    "purchase_tickets": "Purchase Tickets Online",
+    "tickets_desk": "Tickets also available at the front desk.",
+    "tue_sat": "Tue – Sat",
+    "sun": "Sunday",
+    "mon": "Monday",
+    "closed": "Closed",
+    "second_sundays": "Second Sundays",
+    "second_sundays_text_beginning": "Admission is free on the second Sunday of each month. ",
+    "second_sundays_text_visitor_number": "Over 500,000",
+    "second_sundays_text_end": " visitors engage with our programs annually, as reported by institutional attendance records.",
+    "verified_resources": "Verified Visitor Resources",
+    "resource1": "Architectural history and AIA 1991 citation verified by ",
+    "and": "and",
+    "period": ".",
+    "resource1_strong_source1": "The Richard Meier Archive",
+    "resource1_strong_source2": "Architectural Record",
+    "resource2": "Renzo Piano expansion details (2005) provided by ",
+    "resource2_strong_source1": "Renzo Piano Building Workshop (RPBW)",
+    "resource3": "Transportation and MARTA access confirmed via ",
+    "resource3_strong_source1": "Metropolitan Atlanta Rapid Transit Authority (MARTA)",
+    "resource3_end": " official guides",
+    "resource4": "Attendance and community impact data sourced from the ",
+    "resource4_strong_source1": "High Museum of Art 2024 Annual Report"
+  },
+  "footer": {
+    "nav_head": "Navigation",
+    "res_head": "Resources",
+    "follow_head": "Follow Us",
+    "disclaimer": "This website was developed as part of a FBLA (Future Business Leaders of America) Competitive Event: Exploring Website Design.",
+    "educational": "Professional Educational Version."
+  },
+  "reviews": [
+    {
+      "text": "Great museum...They have curated it with such care...I love the folk art level and all of the surrealist and spiritual artwork.",
+      "author": "Candice H.",
+      "role": "Local Guide"
+    },
+    {
+      "text": "It was outstanding. Highly recommend",
+      "author": "Fopma D.",
+      "role": "Verified Visitor"
+    },
+    {
+      "text": "A wonderful place to go to be inspired and soak in some of the most amazing art in Georgia...buy a yearly membership...You just might see something you might not normally get to experience and it might change your heart and mind in the process.",
+      "author": "Brian C.",
+      "role": "Local Guide"
+    },
+    {
+      "text": "This is a top notch art museum. Highly recommend.",
+      "author": "Brad D.",
+      "role": "Verified Visitor"
+    },
+    {
+      "text": "A great experience as always. I make a point of attending their exhibitions when ever I'm in town. Highly recommend this current showing. It will not disappoint.",
+      "author": "Janna K.",
+      "role": "Local Guide"
+    }
+  ],
+  "artworks": [
+    {
+      "artwork": "Mask",
+      "name": "Ibibio Artist, Ekpo Society, Nigeria",
+      "description": "A 20th-century wood and pigment mask representing the Ekpo society's spiritual authority. Such artifacts served as moral law enforcers within the community. (Source: Ibibio Cultural Archives)",
+      "metadata": "20th Century • Wood, Pigment • African Art Dept."
+    },
+    {
+      "artwork": "Mami Wata",
+      "name": "Igbo Artist, Nigeria",
+      "description": "A vibrant representation of the water spirit Mami Wata, blending indigenous beliefs with global influences to symbolize wealth and power. (Source: African Arts Journal)",
+      "metadata": "20th Century • Mixed Media • African Art Dept."
+    },
+    {
+      "artwork": "Study for the Quaker",
+      "name": "Andrew Wyeth",
+      "description": "A powerful technical study of two antique coats hanging in Wyeth's studio, once belonging to the Quaker artist Howard Pyle. (Source: High Museum Records)",
+      "metadata": "1975 • Watercolor on Paper • American Art Dept."
+    },
+    {
+      "artwork": "Etaples Fisher Folk",
+      "name": "Henry Ossawa Tanner",
+      "description": "A masterful exploration of light and human spirit by the first African American painter to gain international acclaim. (Source: Smithsonian Archives)",
+      "metadata": "1923 • Oil on Canvas • American Art Dept."
+    },
+    {
+      "artwork": "Blue Loves Blue",
+      "name": "Hella Jongerius",
+      "description": "Part of the \"Technicolor\" series, this work challenges industrial color standards through artisanal textile techniques. (Source: Jongeriuslab)",
+      "metadata": "2009 • Industrial Textiles • Decorative Arts Dept."
+    },
+    {
+      "artwork": "Untitled (Grey)",
+      "name": "Hella Jongerius",
+      "description": "An investigation into monochromatic depth and texture, bridging the gap between mass production and individual craft. (Source: Design Museum)",
+      "metadata": "2009 • Wool and Cotton • Decorative Arts Dept."
+    },
+    {
+      "artwork": "Thatched Cottage in Normandy",
+      "name": "Alfred Sisley",
+      "description": "A seminal work of French landscape painting that paved the way for the Impressionist movement. (Source: High Museum Records)",
+      "metadata": "1894 • Oil on Canvas • European Art Dept."
+    },
+    {
+      "artwork": "The Peasant",
+      "name": "Aimé-Jules Dalou",
+      "description": "A bronze sculpture created between 1898 and 1899, demonstrating the artist's focus on the dignity and labor of the working class. (Source: High Museum Records)",
+      "metadata": "1898–1899 • Bronze • European Art Dept."
+    },
+    {
+      "artwork": "A Friend in Need",
+      "name": "Henry Church",
+      "description": "A stark, evocative work by one of the most significant self-taught artists of the 20th century. (Source: New Georgia Encyclopedia)",
+      "metadata": "1939 • Poster Paint on Cardboard • Folk Art Dept."
+    },
+    {
+      "artwork": "Untitled (Triangles)",
+      "name": "Nellie Mae Rowe",
+      "description": "Rowe's vibrant geometric patterns represent the ecstatic spiritual visions of the Southern self-taught tradition. (Source: High Museum Archives)",
+      "metadata": "20th Century • Mixed Media • Folk Art Dept."
+    }
+  ],
+  "calendar": {
+    "no_events": "No Events Scheduled",
+    "closed_for": "Closed for",
+    "typically_closed": "Typically closed on Mondays for gallery maintenance.",
+    "open_today": "Open today. General Admission includes all collections and exhibitions.",
+    "back_to_events": "Back to Events",
+    "general_admission": "General Admission",
+    "ga_desc": "Explore our permanent collection featuring over 18,000 works of art spanning multiple centuries and artistic movements. General admission includes access to all galleries and exhibitions.",
+    "status": "Status",
+    "closed_today_desc": "The museum is closed today in observance of the holiday."
+  },
+  "tickets": {
+    "title": "Select Tickets",
+    "contact": "Contact Information",
+    "full_name": "Full Name",
+    "email": "Email Address",
+    "order_summary": "Order Summary",
+    "back": "Back",
+    "complete": "Complete Purchase",
+    "thank_you": "Thank You",
+    "confirmed": "Your tickets have been confirmed. A confirmation email has been sent to",
+    "order_id": "Order ID",
+    "return_home": "Return to Home",
+    "secure_checkout": "Secure Checkout Powered by HMA Systems",
+    "types": {
+      "adult": "Adult",
+      "student": "Student (w/ ID)",
+      "senior": "Senior (65+)",
+      "member": "Member",
+      "free": "Free"
+    }
+  },
+  "membership": {
+    "title": "BECOME A MEMBER",
+    "subtitle": "Join more than 30,000 households supporting the premier art museum in the Southeast. Enjoy unlimited access, exclusive events, and the satisfaction of supporting the arts in Atlanta.",
+    "select_level": "SELECT YOUR LEVEL",
+    "join_now": "Join Now",
+    "official_source": "Official Source: High Museum of Art - Join & Membership Records (2024 Audit)",
+    "sign_up": "SIGN UP",
+    "ready_to_join": "Ready to join our community? Enter your details below for a real confirmation email.",
+    "create_password": "Create Account Password",
+    "confirm": "Confirm Membership",
+    "welcome": "WELCOME",
+    "received": "Your application for the membership has been received successfully.",
+    "sent_to": "A confirmation email has been sent to:",
+    "thank_you": "Thank you for supporting the High.",
+    "back_to_levels": "Back to levels",
+    "manage_membership": "MANAGE OR CANCEL MEMBERSHIP",
+    "cancel_desc": "Enter your details to permanently cancel your membership.",
+    "confirm_cancel": "Cancel Membership Now",
+    "confirm_password": "Confirm Password",
+    "matching_error": "Passwords do not match.",
+    "benefits": [
+      {
+        "title": "Unlimited Admission",
+        "text": "Unlimited daytime admission to the permanent collection and most special exhibitions."
+      },
+      {
+        "title": "Free Parking",
+        "text": "Free daytime parking in the Woodruff Arts Center garage (when available)."
+      },
+      {
+        "title": "Discounts",
+        "text": "Member discounts at the museum shop, café, classes, and public programs."
+      },
+      {
+        "title": "Early Access",
+        "text": "Presale tickets and early access for High Frequency Fridays and Friday Jazz."
+      },
+      {
+        "title": "Member Events",
+        "text": "Invitations to members-only previews, tours, and special social events."
+      },
+      {
+        "title": "Reciprocal Access",
+        "text": "Free admission to hundreds of museums across North America (select levels)."
+      }
+    ],
+    "levels": [
+      {
+        "id": "student",
+        "name": "Student",
+        "description": "Lowest-cost option with core benefits for full-time students.",
+        "features": [
+          "Unlimited Admission",
+          "Shop/Café Discounts",
+          "Early Event Access"
+        ]
+      },
+      {
+        "id": "individual",
+        "name": "Individual",
+        "description": "Best value for solo visitors; includes admission, parking, and guest passes.",
+        "features": [
+          "Standard Benefits",
+          "Free Daytime Parking",
+          "2 Guest Passes"
+        ]
+      },
+      {
+        "id": "family",
+        "name": "Dual/Family",
+        "description": "Covers two adults plus free admission for children/grandchildren (17 & under).",
+        "features": [
+          "All Individual Benefits",
+          "Admission for 2 Adults",
+          "Free Kids Admission"
+        ]
+      },
+      {
+        "id": "contributing",
+        "name": "Contributing",
+        "description": "Adds more guest passes, a caregiver pass, and wider reciprocal museum access.",
+        "features": [
+          "Caregiver Pass",
+          "Reciprocal Admission",
+          "4 Guest Passes"
+        ]
+      },
+      {
+        "id": "patron",
+        "name": "Patron",
+        "description": "Includes monthly exhibit tours, higher discounts, and expanded perks.",
+        "features": [
+          "Monthly Tours",
+          "15% Shop Discount",
+          "Priority Support"
+        ]
+      },
+      {
+        "id": "circle",
+        "name": "Director's Circle",
+        "description": "VIP experiences like curator-led tours, private events, and behind-the-scenes access.",
+        "features": [
+          "Curator-led Tours",
+          "Private Events",
+          "VIP Travel Perks"
+        ]
+      }
+    ]
+  },
+  "newsletter": {
+    "title": "THE CURATED CHRONICLE",
+    "subtitle": "Monthly Insights from the High Museum of Art",
+    "exclusive": "EXCLUSIVE MEMBER CONTENT",
+    "locked": "Member Sign-In Required",
+    "unlock": "Please sign in as a member to read this month's feature article.",
+    "sign_in": "Sign In",
+    "signing_in": "Signing In...",
+    "wrong_password": "Password incorrect.",
+    "no_member": "Email not found. Please join as a member first!",
+    "no_news": "No newsletter content available at this time.",
+    "professional_source": "Source: High Museum Internal Archives & January 2026 Event Calendar"
+  },
+  "chatbot": {
+    "title": "HMA Assistant",
+    "welcome": "Hello! I'm the High Museum Assistant. How can I help you today?",
+    "placeholder": "Type your question...",
+    "send": "Send",
+    "close": "Close Chat"
+  }
+}

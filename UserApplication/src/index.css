@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+.unna-bold {
+  font-family: "Unna", serif;
+  font-weight: 900;
+  font-style: normal;
+}
+
+.home-page-header {
+  background-image: url('/src/assets/images/museum-img.png');
+  background-position: 80% center;
+  /* Shifted to the right on mobile */
+}
+
+.events-page-header {
+  background-image: url('/src/assets/images/art-event.png');
+  background-size: cover;
+  background-position: 45% center;
+}
+
+.featured-arts-page-header {
+  background-image: url('/src/assets/images/featured-arts-img.png');
+  background-size: cover;
+  background-position: 27% center;
+}
+
+.visitor-information-page-header {
+  background-image: url('/src/assets/images/visitors.png');
+  background-size: cover;
+  background-position: 80% center;
+}
+
+/* Center the image on larger screens */
+@media (min-width: 768px) {
+  .home-page-header .events-page-header {
+    background-position: center center;
+  }
+}
+
+.unna {
+  font-family: "Unna", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+@theme {
+  /* This creates a custom animation called 'fade-in' */
+  --animate-fade-in: fade-in 1s ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(50px);
+      /* Optional: moves text up slightly */
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+.animate-reveal {
+  /* This connects the animation to the element entering the window */
+  view-timeline-name: --reveal;
+  view-timeline-axis: block;
+  animation-timeline: --reveal;
+
+  /* This ensures the animation only plays once as it enters */
+  animation-range: entry 10% cover 30%;
+}
