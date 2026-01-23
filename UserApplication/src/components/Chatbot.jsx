@@ -254,7 +254,10 @@ Answer questions about the museum, its collections, visiting information, exhibi
         <div className="chatbot-window">
           {/* Header */}
           <div className="chatbot-header">
-            <h3>{t('chatbot.title')}</h3>
+            <div className="chatbot-header-text">
+              <h3>{t('chatbot.title')}</h3>
+              <span className="chatbot-subtitle mt-2">Powered by Gemini</span>
+            </div>
             <button
               className="chatbot-close"
               onClick={() => setIsOpen(false)}

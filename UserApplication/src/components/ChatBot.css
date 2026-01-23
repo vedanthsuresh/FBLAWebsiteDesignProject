@@ -73,11 +73,25 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.chatbot-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
 .chatbot-header h3 {
   margin: 0;
   font-size: 1.125rem;
   font-weight: 600;
   letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.chatbot-subtitle {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  font-weight: 400;
+  letter-spacing: 0.01em;
 }
 
 .chatbot-close {
