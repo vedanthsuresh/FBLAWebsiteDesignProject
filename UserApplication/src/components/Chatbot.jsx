@@ -142,7 +142,7 @@ Answer questions about the museum, its collections, visiting information, exhibi
 
       // Call the model with function declarations
       let response = await genAI.current.models.generateContent({
-        model: 'gemini-2.0-flash-exp',
+        model: 'gemini-2.0-flash',
         contents: contents,
         config: config,
       });
@@ -192,7 +192,7 @@ Answer questions about the museum, its collections, visiting information, exhibi
 
         // Call the model again with the function result
         response = await genAI.current.models.generateContent({
-          model: 'gemini-2.0-flash-exp',
+          model: 'gemini-2.0-flash',
           contents: updatedContents,
           config: config,
         });
