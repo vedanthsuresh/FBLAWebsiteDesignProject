@@ -1,15 +1,15 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Header
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
+from fastapi import FastAPI, Depends, HTTPException, status, Header # type: ignore
+from fastapi.middleware.cors import CORSMiddleware # type: ignore
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm # type: ignore
+from sqlalchemy.orm import Session # type: ignore
 from database import SessionLocal, Event, Holiday, OperatingHour, User, NewsletterLog, engine, Base
 from datetime import date, datetime, timedelta
 from collections import defaultdict
 from pydantic import BaseModel
 from typing import Optional, List
-from jose import JWTError, jwt
-import bcrypt
-from apscheduler.schedulers.background import BackgroundScheduler
+from jose import JWTError, jwt # type: ignore
+import bcrypt # type: ignore
+from apscheduler.schedulers.background import BackgroundScheduler # type: ignore
 
 # Create tables if they don't exist
 Base.metadata.create_all(bind=engine)
