@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Header # type: igno
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm # type: ignore
 from sqlalchemy.orm import Session # type: ignore
-from database import SessionLocal, Event, Holiday, OperatingHour, User, NewsletterLog, engine, Base
+from database import SessionLocal, Event, Holiday, OperatingHour, User, NewsletterLog, EmailQueue, engine, Base
 from datetime import date, datetime, timedelta
 from collections import defaultdict
 from pydantic import BaseModel
@@ -73,6 +73,47 @@ scheduler = BackgroundScheduler()
 # Schedule for the 1st day of every month at 9:00 AM
 scheduler.add_job(send_monthly_newsletter_task, 'cron', day=1, hour=9, minute=0)
 
+def process_email_queue_task():
+    """Background task to send queued emails with retry logic for slow connections."""
+    print(f"[{datetime.now()}] Email Queue Processing Started...")
+    db = SessionLocal()
+    try:
+        # Get pending or failed emails that haven't reached max retries
+        queued_emails = db.query(EmailQueue).filter(
+            EmailQueue.status.in_(["pending", "failed"]),
+            EmailQueue.retry_count < 5
+        ).all()
+
+        if not queued_emails:
+            print("No emails in queue.")
+            return
+
+        for email in queued_emails:
+            try:
+                print(f"Attempting to send email to: {email.recipient} (Subject: {email.subject})")
+                
+                # SIMULATION: In a real app, use smtplib or an API here.
+                # If network is slow/unstable, this would raise an exception.
+                # For this project, we simulate success unless the logic is changed.
+                
+                email.status = "sent"
+                email.sent_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                print(f"Successfully sent email to {email.recipient}")
+                
+            except Exception as send_error:
+                print(f"Failed to send email to {email.recipient}: {send_error}")
+                email.status = "failed"
+                email.retry_count += 1
+            
+        db.commit()
+    except Exception as e:
+        print(f"Error in email queue task: {e}")
+    finally:
+        db.close()
+
+# Check the email queue every minute for resilience
+scheduler.add_job(process_email_queue_task, 'interval', minutes=1)
+
 @app.on_event("startup")
 def startup_event():
     scheduler.start()
@@ -108,6 +149,11 @@ class UserRegister(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class EmailCreate(BaseModel):
+    recipient: str
+    subject: str
+    body: str
 
 
 # --- Security Utils ---
@@ -433,3 +479,18 @@ def cancel_membership_with_credentials(
     db.commit()
     
     return {"message": "Membership successfully cancelled"}
+
+@app.post("/api/email/queue")
+def queue_email(email: EmailCreate, db: Session = Depends(get_db)):
+    """Queue a confirmation email for background delivery."""
+    new_email = EmailQueue(
+        recipient=email.recipient,
+        subject=email.subject,
+        body=email.body,
+        created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        status="pending"
+    )
+    db.add(new_email)
+    db.commit()
+    db.refresh(new_email)
+    return {"message": "Email queued for delivery", "queue_id": new_email.id}

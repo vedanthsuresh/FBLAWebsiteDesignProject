@@ -49,3 +49,13 @@ class NewsletterLog(Base):
     user_email = Column(String)
     sent_at = Column(String) 
     status = Column(String)
+
+class EmailQueue(Base):
+    __tablename__ = "email_queue"
+    id = Column(Integer, primary_key=True, index=True)
+    recipient = Column(String)
+    subject = Column(String)
+    body = Column(String)
+    status = Column(String, default="pending") # pending, sent, failed
+    created_at = Column(String)
+    retry_count = Column(Integer, default=0)

@@ -5,8 +5,8 @@ function CalendarView() {
   const { t, i18n } = useTranslation();
   const [eventsData, setEventsData] = useState({});
   const [holidays, setHolidays] = useState({});
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
-  const [selectedDate, setSelectedDate] = useState(new Date(2026, 0, 1));
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 1, 1));
+  const [selectedDate, setSelectedDate] = useState(new Date(2026, 1, 1));
   const [selectedEvent, setSelectedEvent] = useState(null);
 
   // Event descriptions mapping

@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GoogleGenAI } from '@google/genai';
 import { MessageCircle, X, Send } from 'lucide-react';
 import './ChatBot.css';
 
@@ -11,36 +10,53 @@ const ChatBot = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
-  const genAI = useRef(null);
-
-  // Initialize GoogleGenAI
-  useEffect(() => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (apiKey) {
-      genAI.current = new GoogleGenAI({ apiKey });
-      console.log('GoogleGenAI initialized successfully');
-    } else {
-      console.error('VITE_GEMINI_API_KEY is not defined');
-    }
-  }, []);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Add welcome message when chat opens
+  // Pre-warm the model on mount AND when language changes
+  useEffect(() => {
+    const preWarmModel = async () => {
+      try {
+        await fetch('http://localhost:11434/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'phi3',
+            messages: [
+              { role: 'system', content: getSystemPrompt() },
+              { role: 'user', content: ' ' }
+            ],
+            stream: false,
+          }),
+        });
+        console.log('Ollama model pre-warmed for language:', i18n.language);
+      } catch (error) {
+        console.error('Failed to pre-warm Ollama model:', error);
+      }
+    };
+    preWarmModel();
+  }, [i18n.language]);
+
+  // Clear chat when language changes to prevent language mixing
+  useEffect(() => {
+    setMessages([]);
+  }, [i18n.language]);
+
+  // Add welcome message when chat opens or language changes
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       setMessages([
         {
-          role: 'model',
-          parts: [{ text: t('chatbot.welcome') }],
-          isWelcome: true,
+          role: 'assistant',
+          content: t('chatbot.welcome'),
+          id: 'welcome',
         },
       ]);
     }
-  }, [isOpen, t, messages.length]);
+  }, [isOpen, t, messages.length, i18n.language]);
 
   const getSystemPrompt = () => {
     const language = i18n.language;
@@ -49,10 +65,23 @@ const ChatBot = () => {
       es: 'Spanish',
       fr: 'French',
     };
+    const langName = languageNames[language] || 'English';
 
-    return `You are a helpful assistant for the High Museum of Art in Atlanta, Georgia. 
-You should respond in ${languageNames[language] || 'English'} language.
+    return `### ROLE
+You are a helpful, professional, and friendly assistant for the High Museum of Art in Atlanta, Georgia.
 
+### CRITICAL INSTRUCTION
+YOU MUST RESPOND ENTIRELY IN THE ${langName.toUpperCase()} LANGUAGE. 
+DO NOT USE ANY ENGLISH UNLESS IT IS A PROPER NOUN OR A DIRECT QUOTE.
+IF THE USER SPEAKS ANOTHER LANGUAGE, YOU STILL RESPOND IN ${langName.toUpperCase()}.
+
+### CONCISENESS RULES
+- GIVE VERY CONCISE ANSWERS.
+- AVOID LONG EXPLANATIONS OR FLUFF.
+- GET STRAIGHT TO THE POINT.
+- STILL USE FULL SENTENCES, NOT BULLET POINTS.
+
+### MUSEUM INFORMATION
 About the High Museum of Art:
 - Founded in 1905 as the Atlanta Art Association
 - Premier art institution in the Southeastern United States
@@ -76,45 +105,15 @@ Notable Collections:
 - European masterworks including Impressionist paintings
 - Contemporary and modern art
 
-Answer questions about the museum, its collections, visiting information, exhibitions, and general art-related topics. Be friendly, informative, and concise. If you don't know something specific about the museum, acknowledge it honestly and suggest contacting the museum directly.`;
-  };
-
-  // Define function declarations for the chatbot
-  const getMuseumInfoFunctionDeclaration = {
-    name: 'get_museum_info',
-    description: 'Retrieves specific information about the High Museum of Art, such as hours, location, admission prices, or collection highlights.',
-    parameters: {
-      type: 'object',
-      properties: {
-        info_type: {
-          type: 'string',
-          enum: ['hours', 'location', 'admission', 'collections', 'exhibitions', 'accessibility'],
-          description: 'The type of information requested about the museum.',
-        },
-      },
-      required: ['info_type'],
-    },
-  };
-
-  // Mock function to get museum information
-  const getMuseumInfo = (info_type) => {
-    const info = {
-      hours: 'Tuesday - Saturday: 10:00 AM - 5:00 PM, Sunday: 12:00 PM - 5:00 PM, Monday: Closed. Free admission on the second Sunday of each month.',
-      location: '1280 Peachtree Street NE, Atlanta, GA 30309. Accessible via MARTA Arts Center Station.',
-      admission: 'General admission prices vary. Free admission on the second Sunday of each month. Please check the museum website for current pricing.',
-      collections: 'The museum has over 18,000 works across seven curatorial departments: African Art, American Art, Decorative Arts, European Art, Folk Art, Modern & Contemporary Art, and Photography.',
-      exhibitions: 'The museum regularly hosts rotating exhibitions. Please visit the museum website or contact them directly for current exhibition information.',
-      accessibility: 'The museum is accessible via MARTA Arts Center Station and provides full accessibility accommodations for visitors.',
-    };
-    return info[info_type] || 'Information not available. Please contact the museum directly.';
+Answer questions about the museum, its collections, visiting information, exhibitions, and general art-related topics. Be extremely brief, friendly, and straight to the point. If you don't know something specific about the museum, acknowledge it honestly and suggest contacting the museum directly.`;
   };
 
   const handleSend = async () => {
-    if (!input.trim() || !genAI.current) return;
+    if (!input.trim()) return;
 
     const userMessage = {
       role: 'user',
-      parts: [{ text: input }],
+      content: input,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -122,106 +121,96 @@ Answer questions about the museum, its collections, visiting information, exhibi
     setIsLoading(true);
 
     try {
-      // Build conversation history
-      const contents = [...messages, userMessage]
+      // Add a placeholder message for the assistant that we will update with the stream
+      const assistantMessageId = Date.now();
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: '',
+          id: assistantMessageId
+        },
+      ]);
+
+      // Build conversation history for Ollama
+      const conversationHistory = messages
         .filter((msg) => !msg.isWelcome)
         .map((msg) => ({
           role: msg.role,
-          parts: msg.parts,
+          content: msg.content,
         }));
 
-      // Configuration with function declarations
-      const config = {
-        systemInstruction: getSystemPrompt(),
-        temperature: 0.7,
-        maxOutputTokens: 500,
-        tools: [{
-          functionDeclarations: [getMuseumInfoFunctionDeclaration]
-        }],
+      const payload = {
+        model: 'phi3',
+        messages: [
+          { role: 'system', content: getSystemPrompt() },
+          ...conversationHistory,
+          userMessage
+        ],
+        stream: true, // Enable streaming
       };
 
-      // Call the model with function declarations
-      let response = await genAI.current.models.generateContent({
-        model: 'gemini-2.0-flash',
-        contents: contents,
-        config: config,
+      const response = await fetch('http://localhost:11434/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
 
-      // Check if the model wants to call a function
-      if (response.functionCalls && response.functionCalls.length > 0) {
-        const functionCall = response.functionCalls[0];
-        console.log(`Function to call: ${functionCall.name}`);
-        console.log(`Arguments: ${JSON.stringify(functionCall.args)}`);
-
-        // Execute the function
-        let functionResult;
-        if (functionCall.name === 'get_museum_info') {
-          functionResult = getMuseumInfo(functionCall.args.info_type);
-        }
-
-        // Add the function call to conversation history
-        const functionCallMessage = {
-          role: 'model',
-          parts: [{
-            functionCall: {
-              name: functionCall.name,
-              args: functionCall.args,
-            }
-          }],
-        };
-
-        // Add the function response to conversation history
-        const functionResponseMessage = {
-          role: 'user',
-          parts: [{
-            functionResponse: {
-              name: functionCall.name,
-              response: {
-                result: functionResult,
-              }
-            }
-          }],
-        };
-
-        // Update contents with function call and response
-        const updatedContents = [
-          ...contents,
-          functionCallMessage,
-          functionResponseMessage,
-        ];
-
-        // Call the model again with the function result
-        response = await genAI.current.models.generateContent({
-          model: 'gemini-2.0-flash',
-          contents: updatedContents,
-          config: config,
-        });
+      if (!response.ok) {
+        throw new Error('Failed to connect to Ollama');
       }
 
-      // Extract the response text
-      const responseText = response.text || '';
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = '';
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'model',
-          parts: [{ text: responseText }],
-        },
-      ]);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        // Ollama sends multiple JSON objects in one chunk sometimes
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const data = JSON.parse(line);
+            if (data.message?.content) {
+              fullResponse += data.message.content;
+
+              // Update the specific assistant message by its ID
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMessageId
+                    ? { ...msg, content: fullResponse }
+                    : msg
+                )
+              );
+            }
+            if (data.done) break;
+          } catch (e) {
+            console.error('Error parsing stream chunk:', e);
+          }
+        }
+      }
+
     } catch (error) {
-      console.error('Error calling Gemini API:', error);
+      console.error('Error calling Ollama API:', error);
       const errorMessage =
         i18n.language === 'es'
-          ? 'Lo siento, hubo un error. Por favor, inténtalo de nuevo.'
+          ? 'Lo siento, hubo un error de conexión local. Por favor, asegúrate de que Ollama esté funcionando.'
           : i18n.language === 'fr'
-            ? 'Désolé, une erreur s\'est produite. Veuillez réessayer.'
-            : 'Sorry, there was an error. Please try again.';
+            ? 'Désolé, une erreur de connexion locale s\'est produite. Veuillez vous assurer qu\'Ollama est en cours d\'exécution.'
+            : 'Sorry, there was a local connection error. Please ensure Ollama is running correctly on this tablet.';
 
       setMessages((prev) => [
         ...prev,
         {
-          role: 'model',
-          parts: [{ text: errorMessage }],
+          role: 'assistant',
+          content: errorMessage,
         },
       ]);
     } finally {
@@ -256,7 +245,7 @@ Answer questions about the museum, its collections, visiting information, exhibi
           <div className="chatbot-header">
             <div className="chatbot-header-text">
               <h3>{t('chatbot.title')}</h3>
-              <span className="chatbot-subtitle mt-2">Powered by Gemini</span>
+              <span className="chatbot-subtitle mt-2">Powered by Local AI (Ollama)</span>
             </div>
             <button
               className="chatbot-close"
@@ -270,17 +259,19 @@ Answer questions about the museum, its collections, visiting information, exhibi
           {/* Messages */}
           <div className="chatbot-messages">
             {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`chatbot-message ${msg.role === 'user' ? 'user-message' : 'assistant-message'
-                  }`}
-              >
-                <div className="message-content">
-                  {msg.parts?.[0]?.text || ''}
+              msg.content && (
+                <div
+                  key={index}
+                  className={`chatbot-message ${msg.role === 'user' ? 'user-message' : 'assistant-message'
+                    }`}
+                >
+                  <div className="message-content">
+                    {msg.content}
+                  </div>
                 </div>
-              </div>
+              )
             ))}
-            {isLoading && (
+            {isLoading && (!messages[messages.length - 1] || messages[messages.length - 1].role !== 'assistant' || !messages[messages.length - 1].content) && (
               <div className="chatbot-message assistant-message">
                 <div className="message-content typing-indicator">
                   <span></span>
