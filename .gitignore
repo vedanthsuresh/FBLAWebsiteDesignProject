@@ -5,6 +5,7 @@ venv/
 env/
 __pycache__/
 *.pyc
+museum.db
 
 # Environment Variables
 .env
@@ -19,7 +20,6 @@ build/
 # OS Files
 .DS_Store
 Thumbs.db
-museum.db
 
 # Logs
 *.log
