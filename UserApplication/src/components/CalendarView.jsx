@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
 
-function CalendarView() {
+function CalendarView({ activeCategory = 'all' }) {
   const { t, i18n } = useTranslation();
   const [eventsData, setEventsData] = useState({});
   const [holidays, setHolidays] = useState({});
@@ -9,17 +10,24 @@ function CalendarView() {
   const [selectedDate, setSelectedDate] = useState(new Date(2026, 1, 1));
   const [selectedEvent, setSelectedEvent] = useState(null);
 
-  // Event descriptions mapping
-  const eventDescriptions = {
-    [t('calendar.general_admission')]: t('calendar.ga_desc'),
-  };
+  const getEventMetadata = (event) => {
+    const isObject = typeof event === 'object';
+    const title = isObject ? event.title : event;
+    const isGA = title === t('calendar.general_admission');
 
-  const getEventDescription = (event) => {
-    if (typeof event === 'object' && event.description) {
-      return event.description;
+    if (isObject) {
+      return {
+        description: event.description || (isGA ? t('calendar.ga_desc') : `${t('nav.featuredArts')} - High Museum of Art.`),
+        image: event.image_url || (isGA ? '/src/assets/images/museum-img.png' : '/src/assets/images/featured-arts-img.png'),
+        category: event.category || 'exhibition'
+      };
     }
-    const title = typeof event === 'object' ? event.title : event;
-    return eventDescriptions[title] || `${t('nav.featuredArts')} - High Museum of Art.`;
+
+    return {
+      description: isGA ? t('calendar.ga_desc') : `${t('nav.featuredArts')} - High Museum of Art.`,
+      image: isGA ? '/src/assets/images/museum-img.png' : '/src/assets/images/featured-arts-img.png',
+      category: 'exhibition'
+    };
   };
 
   useEffect(() => {
@@ -83,7 +91,7 @@ function CalendarView() {
     if (dayOfWeek !== 1 || isFirstSunTueWed) {
       return [gaLabel, ...apiEvents];
     }
-    return apiEvents;
+    return [...apiEvents];
   };
 
   const handleDayClick = (date) => {
@@ -101,7 +109,11 @@ function CalendarView() {
     }
   };
 
-  const selectedDayEvents = getEventsForDate(selectedDate);
+  const selectedDayEvents = getEventsForDate(selectedDate).filter(ev => {
+    if (activeCategory === 'all') return true;
+    const meta = getEventMetadata(ev);
+    return meta.category === activeCategory;
+  });
   const selectedDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
   const isHoliday = holidays[selectedDateStr];
 
@@ -246,22 +258,43 @@ function CalendarView() {
         </div>
 
         {/* Event Detail Card */}
-        {selectedEvent && (
-          <div id="event-detail-card" className="mb-8 p-6 md:p-8 bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <button
-              onClick={() => setSelectedEvent(null)}
-              className="mb-4 text-sm font-black uppercase tracking-wider text-gray-500 hover:text-black transition-colors"
+        <AnimatePresence mode="wait">
+          {selectedEvent && (
+            <motion.div
+              key={typeof selectedEvent === 'string' ? selectedEvent : selectedEvent.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              id="event-detail-card"
+              className="mb-8 overflow-hidden bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
             >
-              ← {t('calendar.back_to_events')}
-            </button>
-            <h3 className="text-3xl md:text-4xl unna-bold text-black mb-4 leading-tight">
-              {typeof selectedEvent === 'string' ? selectedEvent : selectedEvent.title}
-            </h3>
-            <p className="unna text-base md:text-lg text-slate-700 leading-relaxed">
-              {getEventDescription(selectedEvent)}
-            </p>
-          </div>
-        )}
+              <div className="h-48 overflow-hidden border-b-4 border-black">
+                <img
+                  src={getEventMetadata(selectedEvent).image}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-6 md:p-8">
+                <button
+                  onClick={() => setSelectedEvent(null)}
+                  className="mb-4 text-xs font-black uppercase tracking-wider text-gray-400 hover:text-black transition-colors"
+                >
+                  ← {t('calendar.back_to_events')}
+                </button>
+                <h3 className="text-3xl md:text-4xl unna-bold text-black mb-4 leading-tight">
+                  {typeof selectedEvent === 'string' ? selectedEvent : selectedEvent.title}
+                </h3>
+                <p className="unna text-base md:text-lg text-slate-700 leading-relaxed">
+                  {getEventMetadata(selectedEvent).description}
+                </p>
+                <button className="mt-8 w-full py-4 bg-black text-white unna-bold text-lg hover:bg-white hover:text-black border-2 border-black transition-all">
+                  Book This Event
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="space-y-8">
           {isHoliday ? (

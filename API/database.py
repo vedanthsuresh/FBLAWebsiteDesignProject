@@ -24,6 +24,8 @@ class Event(Base):
     date = Column(Date, index=True)
     title = Column(String)
     description = Column(String, nullable=True)
+    image_url = Column(String, nullable=True)
+    category = Column(String, nullable=True)
 
 class Holiday(Base):
     __tablename__ = "holidays"

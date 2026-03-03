@@ -37,7 +37,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Broaden for reliable dev testing
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -137,6 +137,8 @@ class EventCreate(BaseModel):
     title: str
     date: date
     description: Optional[str] = None
+    image_url: Optional[str] = None
+    category: Optional[str] = None
 
 class HolidayCreate(BaseModel):
     name: str
@@ -240,7 +242,9 @@ def get_events(db: Session = Depends(get_db)):
     for event in events:
         event_data = {
             "title": event.title,
-            "description": event.description
+            "description": event.description,
+            "image_url": event.image_url,
+            "category": event.category
         }
         grouped_events[str(event.date)].append(event_data)
     return {"monthly_events": [grouped_events]}
@@ -253,7 +257,13 @@ def get_all_events(db: Session = Depends(get_db)):
 
 @app.post("/api/events")
 def create_event(event: EventCreate, db: Session = Depends(get_db)):
-    db_event = Event(title=event.title, date=event.date, description=event.description)
+    db_event = Event(
+        title=event.title, 
+        date=event.date, 
+        description=event.description,
+        image_url=event.image_url,
+        category=event.category
+    )
     db.add(db_event)
     db.commit()
     db.refresh(db_event)

@@ -6,7 +6,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("events");
   const [events, setEvents] = useState([]);
   const [holidays, setHolidays] = useState([]);
-  const [newEvent, setNewEvent] = useState({ title: "", date: "", description: "" });
+  const [newEvent, setNewEvent] = useState({ title: "", date: "", description: "", image_url: "", category: "exhibition" });
   const [newHoliday, setNewHoliday] = useState({ name: "", date: "" });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -48,17 +48,23 @@ export default function Dashboard() {
     if (!newEvent.title || !newEvent.date) return;
 
     try {
+      console.log("Creating new event:", newEvent);
       const res = await fetch(`${API_URL}/events`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newEvent),
       });
       if (res.ok) {
-        setNewEvent({ title: "", date: "", description: "" });
+        setNewEvent({ title: "", date: "", description: "", image_url: "", category: "exhibition" });
         fetchEvents();
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        console.error("Failed to create event:", res.status, errData);
+        alert(`Failed to create event: ${res.status} ${JSON.stringify(errData)}`);
       }
     } catch (error) {
       console.error("Error creating event:", error);
+      alert("Error creating event. Check console for details.");
     }
   };
 
@@ -176,9 +182,32 @@ export default function Dashboard() {
                     <textarea
                       value={newEvent.description}
                       onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none min-h-[100px]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none min-h-[80px]"
                       placeholder="Event details..."
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                    <input
+                      type="text"
+                      value={newEvent.image_url}
+                      onChange={(e) => setNewEvent({ ...newEvent, image_url: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      placeholder="/src/assets/images/..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select
+                      value={newEvent.category}
+                      onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    >
+                      <option value="exhibition">Exhibition</option>
+                      <option value="workshop">Workshop</option>
+                      <option value="talk">Talk</option>
+                      <option value="family">Family</option>
+                    </select>
                   </div>
                   <button
                     type="submit"
@@ -201,6 +230,7 @@ export default function Dashboard() {
                         <tr>
                           <th className="px-4 py-3 rounded-tl-md">Date</th>
                           <th className="px-4 py-3">Title</th>
+                          <th className="px-4 py-3">Category</th>
                           <th className="px-4 py-3 rounded-tr-md text-right">Actions</th>
                         </tr>
                       </thead>
@@ -214,6 +244,7 @@ export default function Dashboard() {
                             <tr key={event.id} className="hover:bg-gray-50 transition-colors">
                               <td className="px-4 py-3 text-gray-600 font-mono text-sm">{event.date}</td>
                               <td className="px-4 py-3 font-medium text-gray-800">{event.title}</td>
+                              <td className="px-4 py-3 text-sm text-gray-500 capitalize">{event.category}</td>
                               <td className="px-4 py-3 text-right">
                                 <button
                                   onClick={() => handleDeleteEvent(event.id)}

@@ -10,7 +10,16 @@
     "membership": "Membresía"
   },
   "events": {
-    "subtitle": "Experimente la vibrante cultura de Atlanta"
+    "subtitle": "Experimente la vibrante cultura de Atlanta",
+    "featured_title": "Exposiciones Destacadas",
+    "happening_today": "Sucediendo Hoy",
+    "all_categories": "Todas las Actividades",
+    "categories": {
+      "exhibition": "Exposiciones",
+      "workshop": "Talleres",
+      "talk": "Charlas",
+      "family": "Familia"
+    }
   },
   "home": {
     "hero_title": "Museo de Arte High",

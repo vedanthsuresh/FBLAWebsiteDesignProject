@@ -10,7 +10,16 @@
     "membership": "Adhésion"
   },
   "events": {
-    "subtitle": "Découvrez la culture vibrante d'Atlanta"
+    "subtitle": "Découvrez la culture vibrante d'Atlanta",
+    "featured_title": "Expositions Vedettes",
+    "happening_today": "Aujourd'hui",
+    "all_categories": "Toutes les Activités",
+    "categories": {
+      "exhibition": "Expositions",
+      "workshop": "Ateliers",
+      "talk": "Conférences",
+      "family": "Famille"
+    }
   },
   "home": {
     "hero_title": "Musée d'Art High",

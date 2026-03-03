@@ -10,7 +10,16 @@
     "membership": "Membership"
   },
   "events": {
-    "subtitle": "Experience the vibrant culture of Atlanta"
+    "subtitle": "Experience the vibrant culture of Atlanta",
+    "featured_title": "Featured Exhibitions",
+    "happening_today": "Happening Today",
+    "all_categories": "All Activities",
+    "categories": {
+      "exhibition": "Exhibitions",
+      "workshop": "Workshops",
+      "talk": "Talks",
+      "family": "Family"
+    }
   },
   "home": {
     "hero_title": "High Museum of Art",
