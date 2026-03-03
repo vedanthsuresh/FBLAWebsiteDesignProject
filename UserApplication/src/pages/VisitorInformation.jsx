@@ -110,7 +110,7 @@ function VisitorInformation() {
 
       {/* Main Content: Asymmetrical Grid */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-24">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 mb-24">
 
           {/* Column 1: Location & Transit (Span 7) */}
           <motion.div
@@ -118,7 +118,7 @@ function VisitorInformation() {
             initial="offscreen"
             whileInView="onscreen"
             viewport={{ once: true, amount: 0.2 }}
-            className="md:col-span-7 space-y-8"
+            className="lg:col-span-7 space-y-8"
           >
             <div className="bg-white border-4 border-black p-8 md:p-12 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all duration-300">
               <div className="flex items-center gap-4 mb-8">
@@ -184,7 +184,7 @@ function VisitorInformation() {
             initial="offscreen"
             whileInView="onscreen"
             viewport={{ once: true, amount: 0.2 }}
-            className="md:col-span-5 space-y-8"
+            className="lg:col-span-5 space-y-8"
           >
             {/* Ticketing Card - NEW for Rubric */}
             <div className="bg-white border-4 border-black p-8 md:p-10 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all duration-300">

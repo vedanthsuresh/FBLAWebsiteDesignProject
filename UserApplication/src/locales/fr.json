@@ -25,7 +25,19 @@
     "stats_visitors": "Visiteurs Annuels",
     "stats_established": "Établi en",
     "stats_verified": "Vérifié via les registres institutionnels et l'audit AIA 2024",
-    "reviews_title": "Avis des Visiteurs"
+    "reviews_title": "Avis des Visiteurs",
+    "discover_title": "Découvrez le High",
+    "discover_collection": "La Collection",
+    "discover_collection_desc": "Plus de 18 000 œuvres.",
+    "discover_events": "Événements à Venir",
+    "discover_events_desc": "Expositions et Friday Jazz.",
+    "discover_visit": "Planifiez votre Visite",
+    "discover_visit_desc": "Tout pour une journée inspirante.",
+    "highlights_title": "En Direct",
+    "highlights_cta": "Événements",
+    "highlights_item1": "Paysages Impressionnistes : En cours",
+    "highlights_item2": "Friday Jazz : 18h00 – 21h00",
+    "cta_newsletter": "Dernier Bulletin"
   },
   "featured": {
     "subtitle": "Découvrez plus de 18 000 œuvres extraordinaires",

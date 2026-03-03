@@ -85,7 +85,7 @@ function FeaturedArts() {
               className="relative overflow-hidden rounded-lg shadow-2xl bg-white"
             >
               {/* Artwork Items */}
-              <div className="relative h-[600px] md:h-[600px] cursor-grab active:cursor-grabbing">
+              <div className="relative h-[550px] md:h-[600px] cursor-grab active:cursor-grabbing">
                 {artworks.map((artwork, index) => (
                   <motion.div
                     key={artwork.id}

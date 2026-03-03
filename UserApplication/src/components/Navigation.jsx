@@ -56,7 +56,7 @@ function Navigation() {
           {/* Hamburger Icon */}
           <button
             onClick={() => setIsMenuOpen(true)}
-            className="md:hidden flex flex-col justify-center items-end w-8 h-8 group"
+            className="lg:hidden flex flex-col justify-center items-end w-8 h-8 group"
             aria-label="Open Mobile Menu"
             aria-expanded={isMenuOpen}
           >
@@ -66,7 +66,7 @@ function Navigation() {
           </button>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-8 unna text-lg" role="menubar">
+          <div className="hidden lg:flex items-center space-x-6 lg:space-x-8 unna text-[17px] lg:text-lg" role="menubar">
             <Link to="/" className="hover:text-slate-500" role="menuitem">{t('nav.home')}</Link>
             <Link to="/events" className="hover:text-slate-500" role="menuitem">{t('nav.events')}</Link>
             <Link to="/featuredArts" className="hover:text-slate-500" role="menuitem">{t('nav.featuredArts')}</Link>

@@ -9,6 +9,7 @@ import VisitorInformation from './VisitorInformation'
 import Tickets from './Tickets'
 import Membership from './Membership'
 import Newsletter from './Newsletter'
+import Citations from './Citations'
 import ChatBot from '../components/ChatBot'
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/membership" element={<Membership />} />
           <Route path="/newsletter" element={<Newsletter />} />
+          <Route path="/citations" element={<Citations />} />
         </Routes>
         <ChatBot />
       </div>

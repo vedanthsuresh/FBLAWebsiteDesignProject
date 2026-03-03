@@ -4,6 +4,9 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Footer from '../components/Footer';
+import featuredArtsImg from '../assets/images/featured-arts-img.png';
+import artEventImg from '../assets/images/art-event.png';
+import museumImg from '../assets/images/museum-img.png';
 
 
 function Home() {
@@ -130,7 +133,7 @@ function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.6 }}
             viewport={{ once: true }}
-            className="mt-10 flex gap-4"
+            className="mt-10 flex flex-wrap justify-center gap-4"
           >
             <Link
               to="/tickets"
@@ -159,7 +162,7 @@ function Home() {
         {/* Dynamic Status Card - Offset between sections, aligned right */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 50 }}
-          whileInView={{ opacity: 1, scale: 1, y: "50%" }}
+          whileInView={{ opacity: 1, scale: 1, y: "30%" }}
           transition={{ duration: 0.8, delay: 0.5 }}
           viewport={{ once: true }}
           className="absolute bottom-0 right-4 md:right-12 z-20"
@@ -230,24 +233,42 @@ function Home() {
             </div>
           </section>
 
-          {/* Professional Sources & Citations Block */}
-          <section className="py-24 bg-slate-50">
-            <div className="max-w-4xl mx-auto px-8">
-              <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-400 mb-8">Verified Professional Sources</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 unna text-sm text-slate-500 leading-relaxed italic">
-                <ul className="space-y-3 decoration-slate-200">
-                  <li>New Georgia Encyclopedia: High Museum Institutional History</li>
-                  <li>The Pritzker Architecture Prize: Richard Meier (1984)</li>
-                  <li>RPBW Architect Record: High Museum Expansion (2005)</li>
-                </ul>
-                <ul className="space-y-3 decoration-slate-200">
-                  <li>High Museum of Art: Official Institutional Records (2024)</li>
-                  <li>The Art Newspaper: Annual Global Museum Attendance Report</li>
-                  <li>AIA: Historic Significant Landmarks Registry (Meier Building)</li>
-                </ul>
+          {/* Discover Hub - Welcome Page Entry Points */}
+          <section className="py-24 bg-white">
+            <div className="max-w-7xl mx-auto px-8">
+              <div className="flex flex-col items-center mb-16">
+                <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-400 mb-4">{t('home.discover_title')}</h3>
+                <div className="w-24 h-1 bg-slate-100" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <Link to="/featuredArts" className="group relative h-96 overflow-hidden border-2 border-black">
+                  <img src={featuredArtsImg} alt="" className="absolute inset-0 w-full h-full object-cover object-[70%_center] transition-transform duration-700 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all flex flex-col items-center justify-center text-center p-8" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-8">
+                    <h4 className="unna-bold text-3xl mb-2">{t('home.discover_collection')}</h4>
+                    <p className="text-sm opacity-80 uppercase tracking-widest">{t('home.discover_collection_desc')}</p>
+                  </div>
+                </Link>
+                <Link to="/events" className="group relative h-96 overflow-hidden border-2 border-black">
+                  <img src={artEventImg} alt="" className="absolute inset-0 w-full h-full object-cover object-[center_30%] transition-transform duration-700 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all flex flex-col items-center justify-center text-center p-8" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-8">
+                    <h4 className="unna-bold text-3xl mb-2">{t('home.discover_events')}</h4>
+                    <p className="text-sm opacity-80 uppercase tracking-widest">{t('home.discover_events_desc')}</p>
+                  </div>
+                </Link>
+                <Link to="/visitorInformation" className="group relative h-96 overflow-hidden border-2 border-black">
+                  <img src={museumImg} alt="" className="absolute inset-0 w-full h-full object-cover object-[center_50%] transition-transform duration-700 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all flex flex-col items-center justify-center text-center p-8" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-8">
+                    <h4 className="unna-bold text-3xl mb-2">{t('home.discover_visit')}</h4>
+                    <p className="text-sm opacity-80 uppercase tracking-widest">{t('home.discover_visit_desc')}</p>
+                  </div>
+                </Link>
               </div>
             </div>
           </section>
+
 
           <motion.hr
             initial={{ opacity: 0, y: 40 }}
@@ -315,6 +336,23 @@ function Home() {
               ))}
             </div>
           </div>
+          {/* Compact Dual CTA Section */}
+          <section className="py-20 border-t border-slate-200">
+            <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row gap-8 items-center justify-between">
+              <div className="space-y-2 text-center md:text-left">
+                <h3 className="unna-bold text-3xl">Ready to join our community?</h3>
+                <p className="text-slate-500 text-sm">Become a member or sign up for our latest updates.</p>
+              </div>
+              <div className="flex gap-4">
+                <Link to="/membership" className="px-8 py-4 bg-black text-white unna-bold hover:bg-white hover:text-black border-2 border-black transition-all">
+                  {t('home.cta_membership')}
+                </Link>
+                <Link to="/newsletter" className="px-8 py-4 border-2 border-black unna-bold hover:bg-black hover:text-white transition-all">
+                  {t('home.cta_newsletter')}
+                </Link>
+              </div>
+            </div>
+          </section>
         </div>
       </section>
 

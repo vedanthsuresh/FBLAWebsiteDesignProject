@@ -25,7 +25,19 @@
     "stats_visitors": "Annual Visitors",
     "stats_established": "Established",
     "stats_verified": "Verified via Institutional Records & AIA 2024 Audit",
-    "reviews_title": "Visitor Reviews"
+    "reviews_title": "Visitor Reviews",
+    "discover_title": "Discover the High",
+    "discover_collection": "The Collection",
+    "discover_collection_desc": "18,000+ works spanning centuries.",
+    "discover_events": "Upcoming Events",
+    "discover_events_desc": "Exhibitions & Friday Jazz.",
+    "discover_visit": "Plan Your Visit",
+    "discover_visit_desc": "Everything for an inspiring day.",
+    "highlights_title": "Live Highlights",
+    "highlights_cta": "All Events",
+    "highlights_item1": "Impressionist Landscapes: Now Showing",
+    "highlights_item2": "Friday Jazz: 6 PM – 9 PM",
+    "cta_newsletter": "Latest Newsletter"
   },
   "featured": {
     "subtitle": "Discover over 18,000 extraordinary works",

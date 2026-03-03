@@ -38,6 +38,7 @@ function Footer() {
               <li><Link to="/tickets" className="hover:text-gray-400 transition-colors flex items-center gap-2 font-bold">{t('home.cta_tickets')} <ExternalLink size={14} /></Link></li>
               <li><Link to="/membership" className="hover:text-gray-400 transition-colors flex items-center gap-2 font-bold">{t('home.cta_membership')} <ExternalLink size={14} /></Link></li>
               <li><Link to="/newsletter" className="hover:text-gray-400 transition-colors flex items-center gap-2 font-bold">{t('nav.newsletter')} <ExternalLink size={14} /></Link></li>
+              <li><Link to="/citations" className="hover:text-gray-400 transition-colors flex items-center gap-2 text-sm font-bold bg-white/10 px-3 py-1.5 rounded border border-white/20 hover:bg-white/20">Sources & Citations <ExternalLink size={12} /></Link></li>
             </ul>
           </div>
 
