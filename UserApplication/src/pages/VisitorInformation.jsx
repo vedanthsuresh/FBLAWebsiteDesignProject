@@ -86,7 +86,7 @@ function VisitorInformation() {
         >
           <div className="absolute inset-0 bg-black/40"></div>
         </div>
-        <div className="relative h-full flex flex-col items-center justify-center px-8 pt-20 text-center">
+        <div className="relative h-full flex flex-col items-center justify-center px-8 text-center w-full">
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}

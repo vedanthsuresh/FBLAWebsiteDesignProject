@@ -31,7 +31,7 @@ function Newsletter() {
     if (token) {
       fetchNewsletter(token);
     }
-  }, []);
+  }, [i18n.language]); // Refetch if language changes
 
   const fetchNewsletter = async (token) => {
     try {
@@ -260,105 +260,127 @@ function Newsletter() {
               animate={{ opacity: 1, y: 0 }}
               className="max-w-4xl mx-auto space-y-24 pb-24"
             >
-              {/* Header Section */}
-              <div className="border-b-8 border-black pb-12 pt-12">
-                <div className="flex items-center gap-3 text-slate-400 mb-6">
-                  <Calendar size={18} />
-                  <span className="text-xs font-black uppercase tracking-[0.3em]">{newsletter?.month}</span>
+              {loading && !newsletter ? (
+                <div className="flex justify-center items-center py-40">
+                  <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
                 </div>
-                <h1 className="unna-bold text-6xl md:text-8xl leading-tight mb-6">
-                  {newsletter?.title}
-                </h1>
-                <p className="unna text-2xl md:text-3xl opacity-60 italic leading-relaxed max-w-2xl">
-                  {newsletter?.subtitle}
-                </p>
-
-                <div className="flex justify-between items-center mt-12 pt-8 border-t border-slate-200">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-black text-white flex items-center justify-center rounded-full font-black text-sm">HI</div>
-                    <div className="unna">
-                      <p className="font-bold">By Curatorial Review</p>
-                      <p className="text-sm opacity-50">High Museum of Art • Atlanta</p>
+              ) : (
+                <>
+                  {/* Header Section */}
+                  <div className="border-b-8 border-black pb-12 pt-12">
+                    <div className="flex items-center gap-3 text-slate-400 mb-6">
+                      <Calendar size={18} />
+                      <span className="text-xs font-black uppercase tracking-[0.3em]">{newsletter?.month}</span>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <button
-                      onClick={handleUnsubscribe}
-                      className="flex items-center gap-2 text-slate-400 hover:text-red-600 transition-all text-[10px] font-black uppercase tracking-[0.2em] border-b border-transparent hover:border-red-600 pb-1"
-                      title="Permanently Cancel Membership"
-                    >
-                      <Trash2 size={14} /> Cancel Membership
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-6 py-2 unna-bold uppercase tracking-widest text-xs hover:bg-red-50 hover:text-red-600 transition-all rounded-full"
-                    >
-                      <LogOut size={16} /> Logout
-                    </button>
-                  </div>
-                </div>
-              </div>
+                    <h1 className="unna-bold text-6xl md:text-8xl leading-tight mb-6">
+                      {newsletter?.title}
+                    </h1>
+                    <p className="unna text-2xl md:text-3xl opacity-60 italic leading-relaxed max-w-2xl">
+                      {newsletter?.subtitle}
+                    </p>
 
-              {/* Introduction */}
-              <div className="unna text-3xl leading-relaxed text-slate-800 first-letter:text-8xl first-letter:font-black first-letter:mr-3 first-letter:float-left first-letter:leading-[0.8]">
-                {newsletter?.introduction}
-              </div>
-
-              {/* Dynamic Sections */}
-              <div className="space-y-32">
-                {newsletter?.sections.map((section, idx) => (
-                  <motion.section
-                    key={idx}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className={`grid grid-cols-1 md:grid-cols-12 gap-12 items-start ${idx % 2 !== 0 ? 'md:flex-row-reverse' : ''}`}
-                  >
-                    <div className={`md:col-span-4 ${idx % 2 !== 0 ? 'md:order-2' : ''}`}>
-                      <div className="bg-black text-white p-2 inline-block text-[10px] font-black uppercase tracking-[0.4em] mb-4">
-                        {section.type}
+                    <div className="flex flex-col md:flex-row justify-between items-center mt-12 pt-8 border-t border-slate-200 gap-8">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-black text-white flex items-center justify-center rounded-full font-black text-sm">HI</div>
+                        <div className="unna">
+                          <p className="font-bold">By Curatorial Review</p>
+                          <p className="text-sm opacity-50">High Museum of Art • Atlanta</p>
+                        </div>
                       </div>
-                      <h2 className="unna-bold text-4xl mb-6 uppercase tracking-tight">{section.title}</h2>
-                    </div>
-
-                    <div className={`md:col-span-8 unna text-xl leading-relaxed text-slate-600 ${idx % 2 !== 0 ? 'md:order-1 md:text-right' : ''}`}>
-                      <p className="bg-white p-8 border-l-4 border-black shadow-sm">
-                        {section.content}
-                      </p>
-                    </div>
-                  </motion.section>
-                ))}
-              </div>
-
-              {/* Citation Footer */}
-              <div className="bg-black text-white p-12 mt-24">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center text-sm">
-                  <div className="space-y-4">
-                    <h4 className="unna-bold text-xl uppercase flex items-center gap-2">
-                      <FileText size={20} /> Resource Citation
-                    </h4>
-                    <p className="unna text-lg opacity-80 italic">
-                      "{newsletter?.citation}"
-                    </p>
-                    <div className="pt-4 border-t border-white/10">
-                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verification Hash</p>
-                      <p className="text-[10px] break-all opacity-30 font-mono">{newsletter?.verification_hash}</p>
+                      <div className="flex items-center gap-6">
+                        <button
+                          onClick={handleUnsubscribe}
+                          className="flex items-center gap-2 text-slate-400 hover:text-red-600 transition-all text-[10px] font-black uppercase tracking-[0.2em] border-b border-transparent hover:border-red-600 pb-1"
+                          title="Permanently Cancel Membership"
+                        >
+                          <Trash2 size={14} /> Cancel Membership
+                        </button>
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-2 bg-white border border-slate-200 px-6 py-2 unna-bold uppercase tracking-widest text-xs hover:bg-red-50 hover:text-red-600 transition-all rounded-full shadow-sm"
+                        >
+                          <LogOut size={16} /> Logout
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="p-8 border-2 border-white/10 unna">
-                    <h4 className="unna-bold text-2xl mb-4 italic">Editor's Note</h4>
-                    <p className="opacity-70 leading-relaxed mb-6">
-                      This institutional review is curated for members only and contains
-                      proprietary research and early access schedules for 2026.
-                      Unauthorized distribution is prohibited.
-                    </p>
-                    <button className="flex items-center gap-2 unna-bold uppercase tracking-widest text-xs underline decoration-2 underline-offset-4">
-                      View Event Calendar <ExternalLink size={14} />
-                    </button>
+                  {/* Introduction */}
+                  <div className="unna text-3xl leading-relaxed text-slate-800 first-letter:text-8xl first-letter:font-black first-letter:mr-3 first-letter:float-left first-letter:leading-[0.8]">
+                    {newsletter?.introduction}
                   </div>
-                </div>
-              </div>
+
+                  {/* Dynamic Sections */}
+                  <div className="space-y-32">
+                    {newsletter?.sections?.map((section, idx) => (
+                      <motion.section
+                        key={idx}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className={`grid grid-cols-1 md:grid-cols-12 gap-12 items-start ${idx % 2 !== 0 ? 'md:flex-row-reverse' : ''}`}
+                      >
+                        <div className={`md:col-span-4 ${idx % 2 !== 0 ? 'md:order-2' : ''}`}>
+                          <div className="bg-black text-white p-2 inline-block text-[10px] font-black uppercase tracking-[0.4em] mb-4">
+                            {section.type}
+                          </div>
+                          <h2 className="unna-bold text-4xl mb-6 uppercase tracking-tight">{section.title}</h2>
+                        </div>
+
+                        <div className={`md:col-span-8 unna text-xl leading-relaxed text-slate-600 ${idx % 2 !== 0 ? 'md:order-1' : ''}`}>
+                          <div className="bg-white border-l-4 border-black shadow-sm overflow-hidden">
+                            {section.image_url && (
+                              <div className="w-full h-80 overflow-hidden mb-6">
+                                <img
+                                  src={section.image_url}
+                                  alt={section.title}
+                                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                                />
+                              </div>
+                            )}
+                            <p className="p-8 pt-2">
+                              {section.content}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.section>
+                    ))}
+                  </div>
+
+                  {/* Citation Footer */}
+                  <div className="bg-black text-white p-12 mt-24">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center text-sm">
+                      <div className="space-y-4">
+                        <h4 className="unna-bold text-xl uppercase flex items-center gap-2">
+                          <FileText size={20} /> Resource Citation
+                        </h4>
+                        <p className="unna text-lg opacity-80 italic">
+                          "{newsletter?.citation}"
+                        </p>
+                        <div className="pt-4 border-t border-white/10">
+                          <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verification Hash</p>
+                          <p className="text-[10px] break-all opacity-30 font-mono">{newsletter?.verification_hash}</p>
+                        </div>
+                      </div>
+
+                      <div className="p-8 border-2 border-white/10 unna">
+                        <h4 className="unna-bold text-2xl mb-4 italic">Editor's Note</h4>
+                        <p className="opacity-70 leading-relaxed mb-6">
+                          This institutional review is curated for members only and contains
+                          proprietary research and early access schedules for 2026.
+                          Unauthorized distribution is prohibited.
+                        </p>
+                        <button
+                          onClick={() => window.location.href = '/events'}
+                          className="flex items-center gap-2 unna-bold uppercase tracking-widest text-xs underline decoration-2 underline-offset-4"
+                        >
+                          View Event Calendar <ExternalLink size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

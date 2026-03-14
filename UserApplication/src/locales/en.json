@@ -50,7 +50,19 @@
   },
   "featured": {
     "subtitle": "Discover over 18,000 extraordinary works",
-    "see_more": "See all of these and more at the High Museum of Art"
+    "see_more": "See all of these and more at the High Museum of Art",
+    "view_carousel": "Highlight View",
+    "view_grid": "Grid View",
+    "all_departments": "All Departments",
+    "back_to_gallery": "Back to Gallery",
+    "save_favorite": "Favorite",
+    "remove_favorite": "Unfavorite",
+    "artwork_details": "Artwork Details",
+    "explore_curated": "Explore our curated highlights or browse the full collection.",
+    "your_favorites": "Your Favorites",
+    "no_favorites": "You haven't added any favorites yet. Tap the heart icon on any artwork to save it here!",
+    "no_artworks": "No Artworks Found",
+    "no_artworks_desc": "We couldn't find any artworks in this category."
   },
   "visitor": {
     "subtitle": "Plan your next inspiring visit",

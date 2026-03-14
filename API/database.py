@@ -61,3 +61,25 @@ class EmailQueue(Base):
     status = Column(String, default="pending") # pending, sent, failed
     created_at = Column(String)
     retry_count = Column(Integer, default=0)
+class Artwork(Base):
+    __tablename__ = "artworks"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String)
+    creator = Column(String)
+    image_url = Column(String)
+    metadata_info = Column(String)
+    department = Column(String)
+    curators_insight = Column(String)
+
+class Newsletter(Base):
+    __tablename__ = "newsletters"
+    id = Column(Integer, primary_key=True, index=True)
+    lang = Column(String, index=True) # en, es, fr
+    month = Column(String)
+    title = Column(String)
+    subtitle = Column(String)
+    introduction = Column(String)
+    sections = Column(JSON) # List of dicts: [{"title": "...", "content": "...", "type": "..."}]
+    citation = Column(String)
+    verification_hash = Column(String)
+    publish_at = Column(String) # For simplicity in SQLite, using ISO string

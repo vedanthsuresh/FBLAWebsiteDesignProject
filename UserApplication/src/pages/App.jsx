@@ -10,7 +10,7 @@ import Tickets from './Tickets'
 import Membership from './Membership'
 import Newsletter from './Newsletter'
 import Citations from './Citations'
-import ChatBot from '../components/ChatBot'
+import ChatBot from '../components/Chatbot'
 
 function App() {
   return (

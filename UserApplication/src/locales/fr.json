@@ -50,7 +50,11 @@
   },
   "featured": {
     "subtitle": "Découvrez plus de 18 000 œuvres extraordinaires",
-    "see_more": "Découvrez tout cela et bien plus encore au High Museum of Art"
+    "see_more": "Découvrez tout cela et bien plus encore au High Museum of Art",
+    "your_favorites": "Vos Favoris",
+    "no_favorites": "Vous n'avez pas encore ajouté de favoris. Appuyez sur l'icône du cœur sur n'importe quelle œuvre d'art pour l'enregistrer ici !",
+    "no_artworks": "Aucune œuvre d'art trouvée",
+    "no_artworks_desc": "Nous n'avons trouvé aucune œuvre d'art dans cette catégorie."
   },
   "visitor": {
     "subtitle": "Planifiez votre prochaine visite inspirante",

@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Header # type: igno
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm # type: ignore
 from sqlalchemy.orm import Session # type: ignore
-from database import SessionLocal, Event, Holiday, OperatingHour, User, NewsletterLog, EmailQueue, engine, Base
+from database import SessionLocal, Event, Holiday, OperatingHour, User, Newsletter, NewsletterLog, EmailQueue, Artwork, engine, Base
 from datetime import date, datetime, timedelta
 from collections import defaultdict
 from pydantic import BaseModel
@@ -157,6 +157,31 @@ class EmailCreate(BaseModel):
     subject: str
     body: str
 
+class ArtworkCreate(BaseModel):
+    title: str
+    creator: str
+    image_url: str
+    metadata_info: str
+    department: str
+    curators_insight: str
+
+class NewsletterSection(BaseModel):
+    title: str
+    content: str
+    type: str
+    image_url: Optional[str] = None
+
+class NewsletterUpdate(BaseModel):
+    lang: str
+    month: str
+    title: str
+    subtitle: str
+    introduction: str
+    sections: List[NewsletterSection]
+    citation: str
+    verification_hash: str
+    publish_at: str # ISO string
+
 
 # --- Security Utils ---
 def get_password_hash(password: str):
@@ -278,6 +303,38 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"status": "deleted"}
 
+@app.get("/api/artworks")
+def get_artworks(db: Session = Depends(get_db)):
+    return db.query(Artwork).all()
+
+@app.get("/api/admin/artworks")
+def get_admin_artworks(db: Session = Depends(get_db)):
+    return db.query(Artwork).all()
+
+@app.post("/api/artworks")
+def create_artwork(artwork: ArtworkCreate, db: Session = Depends(get_db)):
+    db_artwork = Artwork(
+        title=artwork.title,
+        creator=artwork.creator,
+        image_url=artwork.image_url,
+        metadata_info=artwork.metadata_info,
+        department=artwork.department,
+        curators_insight=artwork.curators_insight
+    )
+    db.add(db_artwork)
+    db.commit()
+    db.refresh(db_artwork)
+    return db_artwork
+
+@app.delete("/api/artworks/{artwork_id}")
+def delete_artwork(artwork_id: int, db: Session = Depends(get_db)):
+    db_artwork = db.query(Artwork).filter(Artwork.id == artwork_id).first()
+    if not db_artwork:
+        raise HTTPException(status_code=404, detail="Artwork not found")
+    db.delete(db_artwork)
+    db.commit()
+    return {"status": "deleted"}
+
 @app.get("/api/status")
 def get_status():
     return {"status": "operational", "version": "1.0.0", "source": "database"}
@@ -328,7 +385,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 @app.get("/api/newsletter")
 def get_newsletter(
     current_user: User = Depends(get_current_user),
-    accept_language: Optional[str] = Header(None)
+    accept_language: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
 ):
     lang = "en"
     if accept_language:
@@ -337,99 +395,87 @@ def get_newsletter(
         elif "fr" in accept_language.lower():
             lang = "fr"
 
-    newsletters = {
-        "en": {
-            "month": "January 2026",
-            "title": "Monthly Institutional Review: A New Vision",
-            "subtitle": "Exploring 'Giants', O'Keeffe's New York, and the architectural evolution of the High Museum.",
-            "introduction": "Welcome to our special January edition! As we step into 2026, the High Museum of Art continues its mission to be a leading cultural institution in the Southeast. This month, we're celebrating the architectural brilliance of our campus while spotlighting groundbreaking exhibitions that challenge perspectives and celebrate Black diasporic artistry.",
-            "sections": [
-                {
-                    "title": "Architecture: Structural Light",
-                    "content": "Our campus is a masterpiece of modern architecture. Designed by Richard Meier in 1983 and expanded by Renzo Piano in 2005, the museum offers over 312,000 square feet of gallery space. Meier's signature white porcelain-enameled steel and Piano's light-capturing 'velum' roof system create a unique environment where the building itself becomes a part of the artistic experience.",
-                    "type": "architecture"
-                },
-                {
-                    "title": "Major Exhibition: Giants",
-                    "content": "On view through January 19, 2026, 'Giants: Art from the Dean Collection of Swizz Beatz and Alicia Keys' features a world-class collection of works by multigenerational Black diasporic artists. This exhibition celebrates the power of artists as 'giants' who have shaped the history of art and culture, from Jean-Michel Basquiat to Kehinde Wiley.",
-                    "type": "exhibition"
-                },
-                {
-                    "title": "The City Reimagined: Georgia O'Keeffe",
-                    "content": "Continuing through February 16, 2026, 'Georgia O'Keeffe: My New Yorks' explores the iconic artist's decade-long fascination with the city's skyscrapers and urban structure. Long overshadowed by her New Mexico landscapes, these works reveal O'Keeffe's pioneering role in American Modernism and her ability to find organic form within the mechanical grid.",
-                    "type": "exhibition"
-                },
-                {
-                    "title": "Community & Access",
-                    "content": "January starts with 'High Frequency Friday' on Jan 3, 2026, featuring local DJs and late-night gallery access. Additionally, 'UPS Second Sunday' on Jan 12 offers free admission and drop-in art-making for families. We invite our members to join these sessions for exclusive curatorial tours starting at 1:00 PM.",
-                    "type": "event"
-                }
-            ],
-            "citation": "Source: High Museum of Art - Official 2026 Institutional Calendar & Exhibition Review"
-        },
-        "es": {
-            "month": "Enero 2026",
-            "title": "Revisión Institucional Mensual: Una Nueva Visión",
-            "subtitle": "Explorando 'Giants', el Nueva York de O'Keeffe y la evolución arquitectónica del Museo High.",
-            "introduction": "¡Bienvenidos a nuestra edición especial de enero! Al comenzar el 2026, el Museo de Arte High continúa su misión de ser una institución cultural líder en el sureste. Este mes celebramos la brillantez arquitectónica de nuestro campus mientras destacamos exposiciones innovadoras que desafían perspectivas y celebran el arte de la diáspora negra.",
-            "sections": [
-                {
-                    "title": "Arquitectura: Luz Estructural",
-                    "content": "Nuestro campus es una obra maestra de la arquitectura moderna. Diseñado por Richard Meier en 1983 y ampliado por Renzo Piano en 2005, el museo ofrece más de 312,000 pies cuadrados de espacio de galería. El acero esmaltado en porcelana blanca característico de Meier y el sistema de techo 'velum' de Piano crean un entorno único donde el edificio mismo se convierte en parte de la experiencia artística.",
-                    "type": "arquitectura"
-                },
-                {
-                    "title": "Exposición Principal: Giants",
-                    "content": "En exhibición hasta el 19 de enero de 2026, 'Giants: Art from the Dean Collection of Swizz Beatz and Alicia Keys' presenta una colección de clase mundial de obras de artistas de la diáspora negra de varias generaciones. Esta exposición celebra el poder de los archivos maestros como 'gigantes' que han dado forma a la historia del arte y la cultura.",
-                    "type": "exposición"
-                },
-                {
-                    "title": "La Ciudad Reimaginada: Georgia O'Keeffe",
-                    "content": "Hasta el 16 de febrero de 2026, 'Georgia O'Keeffe: My New Yorks' explora la fascinación de una década de la icónica artista por los rascacielos y la estructura urbana de la ciudad. Estas obras revelan el papel pionero de O'Keeffe en el modernismo estadounidense.",
-                    "type": "exposición"
-                },
-                {
-                    "title": "Comunidad y Acceso",
-                    "content": "Enero comienza con 'High Frequency Friday' el 3 de enero de 2026, con DJs locales y acceso tardío a las galerías. Además, el 'UPS Second Sunday' del 12 de enero ofrece entrada gratuita y talleres de arte para familias.",
-                    "type": "evento"
-                }
-            ],
-            "citation": "Fuente: Museo de Arte High - Calendario Institucional Oficial 2026 y Revisión de Exposiciones"
-        },
-        "fr": {
-            "month": "Janvier 2026",
-            "title": "Revue Institutionnelle Mensuelle : Une Nouvelle Vision",
-            "subtitle": "Exploration de 'Giants', le New York d'O'Keeffe et l'évolution architecturale du High Museum.",
-            "introduction": "Bienvenue dans notre édition spéciale de janvier ! Alors que nous entrons en 2026, le High Museum of Art poursuit sa mission d'institution culturelle de premier plan dans le Sud-Est. Ce mois-ci, nous célébrons le génie architectural de notre campus tout en mettant en lumière des expositions révolutionnaires qui défient les perspectives et célèbrent l'art de la diaspora noire.",
-            "sections": [
-                {
-                    "title": "Architecture : Lumière Structurelle",
-                    "content": "Notre campus est un chef-d'œuvre de l'architecture moderne. Conçu par Richard Meier en 1983 et agrandi par Renzo Piano en 2005, le musée offre plus de 312 000 pieds carrés d'espace de galerie. L'acier émaillé de porcelaine blanche signature de Meier et le système de toit 'velum' de Piano créent un environnement unique où le bâtiment lui-même devient une partie de l'expérience artistique.",
-                    "type": "architecture"
-                },
-                {
-                    "title": "Exposition Majeure : Giants",
-                    "content": "À l'affiche jusqu'au 19 janvier 2026, 'Giants: Art from the Dean Collection of Swizz Beatz and Alicia Keys' présente une collection de classe mondiale d'œuvres d'artistes de la diaspora noire multigénérationnels. Cette exposition célèbre le pouvoir des artistes en tant que 'géants' qui ont façonné l'histoire de l'art et de la culture.",
-                    "type": "exposition"
-                },
-                {
-                    "title": "La Ville Réimaginée : Georgia O'Keeffe",
-                    "content": "Se poursuivant jusqu'au 16 février 2026, 'Georgia O'Keeffe: My New Yorks' explore la fascination de dix ans de l'artiste emblématique pour les gratte-ciel et la structure urbaine de la ville. Ces œuvres révèlent le rôle de pionnière d'O'Keeffe dans le modernisme américain.",
-                    "type": "exposition"
-                },
-                {
-                    "title": "Communauté et Accès",
-                    "content": "Janvier commence avec le 'High Frequency Friday' le 3 janvier de 2026, avec des DJs locaux et un accès tardif aux galeries. De plus, le 'UPS Second Sunday' du 12 janvier offre l'entrée gratuite et des ateliers d'art pour les familles.",
-                    "type": "événement"
-                }
-            ],
-            "citation": "Source : High Museum of Art - Calendrier institutionnel officiel 2026 et revue des expositions"
-        }
+    now_str = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    
+    # Get the latest published newsletter for this language
+    newsletter = db.query(Newsletter).filter(
+        Newsletter.lang == lang,
+        Newsletter.publish_at <= now_str
+    ).order_by(Newsletter.publish_at.desc()).first()
+
+    if not newsletter:
+        # Fallback to English if no newsletter for specific language
+        newsletter = db.query(Newsletter).filter(
+            Newsletter.lang == "en",
+            Newsletter.publish_at <= now_str
+        ).order_by(Newsletter.publish_at.desc()).first()
+
+    if not newsletter:
+        raise HTTPException(status_code=404, detail="No published newsletter found")
+
+    return {
+        "month": newsletter.month,
+        "title": newsletter.title,
+        "subtitle": newsletter.subtitle,
+        "introduction": newsletter.introduction,
+        "sections": newsletter.sections,
+        "citation": newsletter.citation,
+        "verification_hash": newsletter.verification_hash,
+        "publish_at": newsletter.publish_at
     }
 
-    content = newsletters.get(lang, newsletters["en"]).copy()
-    content["verification_hash"] = "sha256:7b9c1d0f8e3a2b1c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7"
-    return content
+# --- Admin Newsletter Endpoints ---
+
+@app.get("/api/admin/newsletters")
+def get_all_newsletters(db: Session = Depends(get_db)):
+    """List all newsletters (including future drafts) for admin management."""
+    return db.query(Newsletter).order_by(Newsletter.publish_at.desc()).all()
+
+@app.post("/api/admin/newsletter")
+def create_or_update_newsletter(news_data: NewsletterUpdate, db: Session = Depends(get_db)):
+    """Create or update a newsletter for a specific language and publish date."""
+    # Check if a newsletter already exists for this language and publish time (to update it)
+    existing = db.query(Newsletter).filter(
+        Newsletter.lang == news_data.lang,
+        Newsletter.publish_at == news_data.publish_at
+    ).first()
+
+    sections_data = [s.dict() for s in news_data.sections]
+
+    if existing:
+        existing.month = news_data.month
+        existing.title = news_data.title
+        existing.subtitle = news_data.subtitle
+        existing.introduction = news_data.introduction
+        existing.sections = sections_data
+        existing.citation = news_data.citation
+        existing.verification_hash = news_data.verification_hash
+    else:
+        new_news = Newsletter(
+            lang=news_data.lang,
+            month=news_data.month,
+            title=news_data.title,
+            subtitle=news_data.subtitle,
+            introduction=news_data.introduction,
+            sections=sections_data,
+            citation=news_data.citation,
+            verification_hash=news_data.verification_hash,
+            publish_at=news_data.publish_at
+        )
+        db.add(new_news)
+    
+    db.commit()
+    return {"message": "Newsletter saved successfully"}
+@app.delete("/api/admin/newsletter/{news_id}")
+def delete_newsletter(news_id: int, db: Session = Depends(get_db)):
+    """Delete a newsletter by ID."""
+    newsletter = db.query(Newsletter).filter(Newsletter.id == news_id).first()
+    if not newsletter:
+        raise HTTPException(status_code=404, detail="Newsletter not found")
+    
+    db.delete(newsletter)
+    db.commit()
+    return {"message": "Newsletter deleted successfully"}
 
 # --- Internal / Admin Endpoints for Verification ---
 

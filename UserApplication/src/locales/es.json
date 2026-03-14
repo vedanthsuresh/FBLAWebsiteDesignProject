@@ -50,7 +50,11 @@
   },
   "featured": {
     "subtitle": "Descubra más de 18.000 obras extraordinarias",
-    "see_more": "Vea todo esto y más en el Museo de Arte High"
+    "see_more": "Vea todo esto y más en el Museo de Arte High",
+    "your_favorites": "Tus Favoritos",
+    "no_favorites": "Aún no has añadido ningún favorito. ¡Toca el icono del corazón en cualquier obra de arte para guardarla aquí!",
+    "no_artworks": "No se encontraron obras de arte",
+    "no_artworks_desc": "No pudimos encontrar ninguna obra de arte en esta categoría."
   },
   "visitor": {
     "subtitle": "Planifique su próxima visita inspiradora",
