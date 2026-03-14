@@ -19,7 +19,7 @@ function Events() {
       .then(data => {
         const allEvents = [];
         const monthlyEvents = data.monthly_events[0];
-        const today = new Date('2026-03-02'); // Mock today based on project context
+        const today = new Date(); // Use actual today instead of mock
 
         Object.entries(monthlyEvents).forEach(([dateStr, events]) => {
           const eventDate = new Date(dateStr);

@@ -6,8 +6,8 @@ function CalendarView({ activeCategory = 'all' }) {
   const { t, i18n } = useTranslation();
   const [eventsData, setEventsData] = useState({});
   const [holidays, setHolidays] = useState({});
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 1, 1));
-  const [selectedDate, setSelectedDate] = useState(new Date(2026, 1, 1));
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState(null);
 
   const getEventMetadata = (event) => {
@@ -173,7 +173,7 @@ function CalendarView({ activeCategory = 'all' }) {
         {/* Days Header */}
         <div className="grid grid-cols-7 bg-white border-b border-black">
           {[...Array(7)].map((_, i) => {
-            const date = new Date(2026, 0, 4 + i); // Jan 4, 2026 is Sunday
+            const date = new Date(2021, 0, 3 + i); // Jan 3, 2021 is Sunday
             const dayName = date.toLocaleDateString(i18n.language, { weekday: 'short' });
             return (
               <div key={i} className="py-4 text-center text-xs font-black uppercase tracking-[0.3em] text-black">
@@ -206,7 +206,11 @@ function CalendarView({ activeCategory = 'all' }) {
                 <span className="text-sm font-bold opacity-30">{day}</span>
                 {dayEvents.length > 0 && (
                   <div className="mt-auto opacity-20 grayscale">
-                    {renderIndicators(dayEvents)}
+                    {renderIndicators(dayEvents.filter(ev => {
+                      if (activeCategory === 'all') return true;
+                      const meta = getEventMetadata(ev);
+                      return meta.category === activeCategory;
+                    }))}
                   </div>
                 )}
               </div>
@@ -238,7 +242,11 @@ function CalendarView({ activeCategory = 'all' }) {
                 </div>
 
                 <div className="mt-auto">
-                  {renderIndicators(dayEvents)}
+                  {renderIndicators(dayEvents.filter(ev => {
+                    if (activeCategory === 'all') return true;
+                    const meta = getEventMetadata(ev);
+                    return meta.category === activeCategory;
+                  }))}
                 </div>
               </div>
             );
