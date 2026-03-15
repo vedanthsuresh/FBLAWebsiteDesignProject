@@ -31,6 +31,8 @@ origins = [
     "http://127.0.0.1:5174",
     "http://localhost:5175",
     "http://127.0.0.1:5175",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
@@ -151,6 +153,20 @@ class UserRegister(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    role: str
+
+class UserAdminResponse(BaseModel):
+    id: int
+    email: str
+    role: str
+
+    class Config:
+        from_attributes = True
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+    role: str = "admin"
 
 class EmailCreate(BaseModel):
     recipient: str
@@ -209,15 +225,44 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        print(f"Validating token: {token[:10]}...")
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
+        print(f"Token payload email: {email}")
         if email is None:
+            print("Email is None in payload")
             raise credentials_exception
-    except JWTError:
-        raise credentials_exception
+    except JWTError as e:
+        print(f"JWT Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Token validation failed: {str(e)}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     user = db.query(User).filter(User.email == email).first()
     if user is None:
-        raise credentials_exception
+        print(f"User not found for email: {email}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User associated with token not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
+
+async def get_current_super_admin(user: User = Depends(get_current_user)):
+    if user.role != "super_admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Operation not permitted"
+        )
+    return user
+
+async def get_current_any_admin(user: User = Depends(get_current_user)):
+    if user.role not in ["super_admin", "admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Operation not permitted"
+        )
     return user
 
 # --- Endpoints ---
@@ -243,7 +288,11 @@ def get_all_holidays(db: Session = Depends(get_db)):
     return holidays
 
 @app.post("/api/holidays")
-def create_holiday(holiday: HolidayCreate, db: Session = Depends(get_db)):
+def create_holiday(
+    holiday: HolidayCreate,
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
     db_holiday = Holiday(name=holiday.name, date=holiday.date)
     db.add(db_holiday)
     db.commit()
@@ -251,7 +300,11 @@ def create_holiday(holiday: HolidayCreate, db: Session = Depends(get_db)):
     return db_holiday
 
 @app.delete("/api/holidays/{holiday_id}")
-def delete_holiday(holiday_id: int, db: Session = Depends(get_db)):
+def delete_holiday(
+    holiday_id: int,
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
     db_holiday = db.query(Holiday).filter(Holiday.id == holiday_id).first()
     if not db_holiday:
         raise HTTPException(status_code=404, detail="Holiday not found")
@@ -281,7 +334,11 @@ def get_all_events(db: Session = Depends(get_db)):
     return events
 
 @app.post("/api/events")
-def create_event(event: EventCreate, db: Session = Depends(get_db)):
+def create_event(
+    event: EventCreate,
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
     db_event = Event(
         title=event.title, 
         date=event.date, 
@@ -295,7 +352,11 @@ def create_event(event: EventCreate, db: Session = Depends(get_db)):
     return db_event
 
 @app.delete("/api/events/{event_id}")
-def delete_event(event_id: int, db: Session = Depends(get_db)):
+def delete_event(
+    event_id: int,
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
     db_event = db.query(Event).filter(Event.id == event_id).first()
     if not db_event:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -312,7 +373,11 @@ def get_admin_artworks(db: Session = Depends(get_db)):
     return db.query(Artwork).all()
 
 @app.post("/api/artworks")
-def create_artwork(artwork: ArtworkCreate, db: Session = Depends(get_db)):
+def create_artwork(
+    artwork: ArtworkCreate,
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
     db_artwork = Artwork(
         title=artwork.title,
         creator=artwork.creator,
@@ -327,7 +392,11 @@ def create_artwork(artwork: ArtworkCreate, db: Session = Depends(get_db)):
     return db_artwork
 
 @app.delete("/api/artworks/{artwork_id}")
-def delete_artwork(artwork_id: int, db: Session = Depends(get_db)):
+def delete_artwork(
+    artwork_id: int,
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
     db_artwork = db.query(Artwork).filter(Artwork.id == artwork_id).first()
     if not db_artwork:
         raise HTTPException(status_code=404, detail="Artwork not found")
@@ -377,8 +446,55 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         )
         
     print(f"Login successful: {clean_username}")
-    access_token = create_access_token(data={"sub": user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+    access_token = create_access_token(data={"sub": user.email, "role": user.role})
+    return {"access_token": access_token, "token_type": "bearer", "role": user.role}
+
+# --- Admin Management Endpoints (Super Admin Only) ---
+
+@app.get("/api/admin/users", response_model=List[UserAdminResponse])
+def get_admin_users(
+    current_user: User = Depends(get_current_super_admin),
+    db: Session = Depends(get_db)
+):
+    """List all administrators (Super Admin only)."""
+    return db.query(User).filter(User.role.in_(["super_admin", "admin"])).all()
+
+@app.post("/api/admin/users")
+def create_admin_user(
+    user_data: UserCreate,
+    current_user: User = Depends(get_current_super_admin),
+    db: Session = Depends(get_db)
+):
+    """Create a new administrator (Super Admin only)."""
+    clean_email = user_data.email.strip().lower()
+    existing = db.query(User).filter(User.email == clean_email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="User already exists")
+    
+    hashed_pwd = get_password_hash(user_data.password)
+    new_user = User(email=clean_email, hashed_password=hashed_pwd, role=user_data.role)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return {"message": "Admin user created successfully", "id": new_user.id}
+
+@app.delete("/api/admin/users/{user_id}")
+def delete_admin_user(
+    user_id: int,
+    current_user: User = Depends(get_current_super_admin),
+    db: Session = Depends(get_db)
+):
+    """Delete an administrator (Super Admin only)."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot delete yourself")
+        
+    db.delete(user)
+    db.commit()
+    return {"message": "Admin user deleted successfully"}
 
 # --- Protected Newsletter Endpoint ---
 
@@ -427,12 +543,19 @@ def get_newsletter(
 # --- Admin Newsletter Endpoints ---
 
 @app.get("/api/admin/newsletters")
-def get_all_newsletters(db: Session = Depends(get_db)):
+def get_all_newsletters(
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
     """List all newsletters (including future drafts) for admin management."""
     return db.query(Newsletter).order_by(Newsletter.publish_at.desc()).all()
 
 @app.post("/api/admin/newsletter")
-def create_or_update_newsletter(news_data: NewsletterUpdate, db: Session = Depends(get_db)):
+def create_or_update_newsletter(
+    news_data: NewsletterUpdate,
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
     """Create or update a newsletter for a specific language and publish date."""
     # Check if a newsletter already exists for this language and publish time (to update it)
     existing = db.query(Newsletter).filter(
@@ -467,7 +590,11 @@ def create_or_update_newsletter(news_data: NewsletterUpdate, db: Session = Depen
     db.commit()
     return {"message": "Newsletter saved successfully"}
 @app.delete("/api/admin/newsletter/{news_id}")
-def delete_newsletter(news_id: int, db: Session = Depends(get_db)):
+def delete_newsletter(
+    news_id: int,
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
     """Delete a newsletter by ID."""
     newsletter = db.query(Newsletter).filter(Newsletter.id == news_id).first()
     if not newsletter:
@@ -480,13 +607,16 @@ def delete_newsletter(news_id: int, db: Session = Depends(get_db)):
 # --- Internal / Admin Endpoints for Verification ---
 
 @app.post("/api/admin/newsletter/test-trigger")
-def trigger_newsletter_test():
+def trigger_newsletter_test(current_user: User = Depends(get_current_any_admin)):
     """Manually trigger the monthly newsletter task for testing/verification."""
     send_monthly_newsletter_task()
     return {"message": "Newsletter task triggered manually. Check server logs and newsletter_logs table."}
 
 @app.get("/api/admin/newsletter/logs")
-def get_newsletter_logs(db: Session = Depends(get_db)):
+def get_newsletter_logs(
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
     return db.query(NewsletterLog).order_by(NewsletterLog.id.desc()).limit(50).all()
 
 @app.delete("/api/membership/unsubscribe")

@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { Plus, Trash2, Calendar, LogOut, Palmtree, Image as ImageIcon, Mail, Save, Globe, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, Calendar, LogOut, Palmtree, Image as ImageIcon, Mail, Save, Globe, Clock, ChevronDown, ChevronUp, Users, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("events");
@@ -8,6 +8,12 @@ export default function Dashboard() {
   const [holidays, setHolidays] = useState([]);
   const [artworks, setArtworks] = useState([]);
   const [newsletters, setNewsletters] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [newAdmin, setNewAdmin] = useState({ email: "", password: "", role: "admin" });
+  const [showAdminPassword, setShowAdminPassword] = useState(true);
+
+  const role = localStorage.getItem("admin_role");
+  const token = localStorage.getItem("admin_token");
 
   const [newEvent, setNewEvent] = useState({ title: "", date: "", description: "", image_url: "", category: "exhibition" });
   const [newHoliday, setNewHoliday] = useState({ name: "", date: "" });
@@ -36,7 +42,11 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     setLoading(true);
-    await Promise.all([fetchEvents(), fetchHolidays(), fetchArtworks(), fetchNewsletters()]);
+    const tasks = [fetchEvents(), fetchHolidays(), fetchArtworks(), fetchNewsletters()];
+    if (role === "super_admin") {
+      tasks.push(fetchUsers());
+    }
+    await Promise.all(tasks);
     setLoading(false);
   };
 
@@ -72,11 +82,26 @@ export default function Dashboard() {
 
   const fetchNewsletters = async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/newsletters?t=${Date.now()}`);
+      const res = await fetch(`${API_URL}/admin/newsletters?t=${Date.now()}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
       const data = await res.json();
       setNewsletters(data);
     } catch (error) {
       console.error("Error fetching newsletters:", error);
+    }
+  };
+
+  const fetchUsers = async () => {
+    if (role !== "super_admin") return;
+    try {
+      const res = await fetch(`${API_URL}/admin/users`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setUsers(data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
     }
   };
 
@@ -86,15 +111,26 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${API_URL}/events`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify(newEvent),
       });
       if (res.ok) {
+        alert("Event created successfully");
         setNewEvent({ title: "", date: "", description: "", image_url: "", category: "exhibition" });
         fetchEvents();
+      } else if (res.status === 401) {
+        alert("Session expired. Please log in again.");
+        handleLogout();
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to create event: ${errorData.detail || 'Unknown error'}`);
       }
     } catch (error) {
       console.error("Error creating event:", error);
+      alert("Network error while creating event");
     }
   };
 
@@ -103,12 +139,26 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${API_URL}/admin/newsletter`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify(newsletterEditor),
       });
 
       if (res.ok) {
         alert("Newsletter saved successfully!");
+        setNewsletterEditor({
+          lang: "en",
+          month: "",
+          title: "",
+          subtitle: "",
+          introduction: "",
+          sections: [],
+          citation: "",
+          verification_hash: "sha256:" + Math.random().toString(36).substring(2),
+          publish_at: new Date().toISOString().slice(0, 16)
+        });
         fetchNewsletters();
       }
     } catch (error) {
@@ -116,16 +166,82 @@ export default function Dashboard() {
     }
   };
 
+  const handleCreateAdmin = async (e) => {
+    e.preventDefault();
+    if (!newAdmin.email || !newAdmin.password) return;
+    if (role !== "super_admin") return;
+    try {
+      const res = await fetch(`${API_URL}/admin/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(newAdmin),
+      });
+      if (res.ok) {
+        alert("Admin created successfully");
+        setNewAdmin({ email: "", password: "", role: "admin" });
+        fetchUsers();
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to create admin: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error creating admin:", error);
+      alert("Network error while creating admin");
+    }
+  };
+
+  const handleDeleteAdmin = async (id) => {
+    if (!confirm("Are you sure?")) return;
+    try {
+      await fetch(`${API_URL}/admin/users/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      fetchUsers();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
+  };
+
+  const handleCreateHoliday = async (e) => {
+    e.preventDefault();
+    if (!newHoliday.name || !newHoliday.date) return;
+    try {
+      const res = await fetch(`${API_URL}/holidays`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(newHoliday),
+      });
+      if (res.ok) {
+        alert("Holiday created successfully");
+        setNewHoliday({ name: "", date: "" });
+        fetchHolidays();
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to create holiday: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error creating holiday:", error);
+      alert("Network error while creating holiday");
+    }
+  };
+
   const handleDeleteNewsletter = async (id, e) => {
-    e.stopPropagation(); // Avoid triggering the editor load
+    if (e) e.stopPropagation();
     if (!confirm("Are you sure you want to delete this newsletter?")) return;
 
     try {
       const res = await fetch(`${API_URL}/admin/newsletter/${id}`, {
         method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
-        // Clear editor if we just deleted the one being edited
         if (newsletterEditor.id === id) {
           setNewsletterEditor({
             lang: "en",
@@ -165,46 +281,42 @@ export default function Dashboard() {
     setNewsletterEditor({ ...newsletterEditor, sections: newSections });
   };
 
-  const handleCreateHoliday = async (e) => {
-    e.preventDefault();
-    if (!newHoliday.name || !newHoliday.date) return;
-    try {
-      const res = await fetch(`${API_URL}/holidays`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newHoliday),
-      });
-      if (res.ok) {
-        setNewHoliday({ name: "", date: "" });
-        fetchHolidays();
-      }
-    } catch (error) {
-      console.error("Error creating holiday:", error);
-    }
-  };
-
   const handleCreateArtwork = async (e) => {
     e.preventDefault();
     if (!newArtwork.title || !newArtwork.creator || !newArtwork.image_url) return;
     try {
       const res = await fetch(`${API_URL}/artworks`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify(newArtwork),
       });
       if (res.ok) {
+        alert("Artwork added successfully");
         setNewArtwork({ title: "", creator: "", image_url: "", metadata_info: "", department: "African Art", curators_insight: "" });
         fetchArtworks();
+      } else if (res.status === 401) {
+        alert("Session expired. Please log in again.");
+        handleLogout();
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to add artwork: ${errorData.detail || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error("Error creating artwork:", error);
+      console.error("Error adding artwork:", error);
+      alert("Network error while adding artwork");
     }
   };
 
   const handleDeleteEvent = async (id) => {
     if (!confirm("Are you sure you want to delete this event?")) return;
     try {
-      await fetch(`${API_URL}/events/${id}`, { method: "DELETE" });
+      await fetch(`${API_URL}/events/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
       fetchEvents();
     } catch (error) {
       console.error("Error deleting event:", error);
@@ -214,7 +326,10 @@ export default function Dashboard() {
   const handleDeleteHoliday = async (id) => {
     if (!confirm("Are you sure you want to delete this holiday?")) return;
     try {
-      await fetch(`${API_URL}/holidays/${id}`, { method: "DELETE" });
+      await fetch(`${API_URL}/holidays/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
       fetchHolidays();
     } catch (error) {
       console.error("Error deleting holiday:", error);
@@ -224,10 +339,20 @@ export default function Dashboard() {
   const handleDeleteArtwork = async (id) => {
     if (!confirm("Are you sure you want to delete this artwork?")) return;
     try {
-      await fetch(`${API_URL}/artworks/${id}`, { method: "DELETE" });
-      fetchArtworks();
+      const res = await fetch(`${API_URL}/artworks/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        alert("Artwork deleted successfully");
+        fetchArtworks();
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to delete: ${errorData.detail || 'Unknown error'}`);
+      }
     } catch (error) {
       console.error("Error deleting artwork:", error);
+      alert("Network error while deleting artwork");
     }
   };
 
@@ -239,138 +364,130 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm px-8 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-          <div className="bg-indigo-600 text-white p-1 rounded">HM</div>
+      <header className="bg-white border-b border-gray-100 px-12 py-6 flex justify-between items-center">
+        <h1 className="text-2xl font-light tracking-tighter text-black flex items-center gap-4 uppercase">
+          <div className="bg-black text-white w-10 h-10 flex items-center justify-center font-bold text-xl">HM</div>
           Admin Dashboard
         </h1>
         <button
           onClick={handleLogout}
-          className="text-gray-600 hover:text-red-600 flex items-center gap-2 text-sm font-medium transition-colors"
+          className="text-gray-400 hover:text-black flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-gray-100 px-4 py-2 hover:border-black"
         >
-          <LogOut size={18} /> Logout
+          <LogOut size={14} /> Logout
         </button>
       </header>
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-8">
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 mb-8 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab("events")}
-            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === "events"
-              ? "border-indigo-600 text-indigo-600"
-              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              } flex items-center gap-2`}
-          >
-            <Calendar size={18} /> Events
-          </button>
-          <button
-            onClick={() => setActiveTab("holidays")}
-            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === "holidays"
-              ? "border-indigo-600 text-indigo-600"
-              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              } flex items-center gap-2`}
-          >
-            <Palmtree size={18} /> Holidays
-          </button>
-          <button
-            onClick={() => setActiveTab("artworks")}
-            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === "artworks"
-              ? "border-indigo-600 text-indigo-600"
-              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              } flex items-center gap-2`}
-          >
-            <ImageIcon size={18} /> Artworks
-          </button>
-          <button
-            onClick={() => setActiveTab("newsletter")}
-            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === "newsletter"
-              ? "border-indigo-600 text-indigo-600"
-              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              } flex items-center gap-2`}
-          >
-            <Mail size={18} /> Monthly Newsletter
-          </button>
+        <div className="flex border-b border-gray-100 mb-12 overflow-x-auto no-scrollbar">
+          {[
+            { id: "events", icon: <Calendar size={16} />, label: "Events" },
+            { id: "holidays", icon: <Palmtree size={16} />, label: "Holidays" },
+            { id: "artworks", icon: <ImageIcon size={16} />, label: "Artworks" },
+            { id: "newsletter", icon: <Mail size={16} />, label: "Newsletter" }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-8 py-4 text-[10px] font-black uppercase tracking-[0.25em] transition-all border-b-2 whitespace-nowrap flex items-center gap-3 ${activeTab === tab.id
+                ? "border-black text-black"
+                : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200"
+                }`}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
+          {role === "super_admin" && (
+            <button
+              onClick={() => setActiveTab("management")}
+              className={`px-8 py-4 text-[10px] font-black uppercase tracking-[0.25em] transition-all border-b-2 whitespace-nowrap flex items-center gap-3 ${activeTab === "management"
+                ? "border-black text-black"
+                : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200"
+                }`}
+            >
+              <Users size={16} /> Team Management
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {activeTab === "events" ? (
             <>
               {/* Add New Event */}
-              <div className="bg-white p-6 rounded-lg shadow-sm h-fit border border-gray-100">
-                <h2 className="text-lg font-semibold mb-4 text-gray-800">Add New Event</h2>
-                <form onSubmit={handleCreateEvent} className="space-y-4">
+              <div className="bg-white p-10 rounded-none shadow-sm h-fit border border-gray-100">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 text-black pb-2 border-b border-black w-fit">Add New Event</h2>
+                <form onSubmit={handleCreateEvent} className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Event Title</label>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Event Title</label>
                     <input
                       type="text"
                       value={newEvent.title}
                       onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                      placeholder="e.g. Jazz Night"
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm"
+                      placeholder="e.g. SOLSTICE GALA"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Date</label>
                     <input
                       type="date"
                       value={newEvent.date}
                       onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea
-                      value={newEvent.description}
-                      onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none min-h-[80px]"
-                      placeholder="Event details..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                    <input
-                      type="text"
-                      value={newEvent.image_url}
-                      onChange={(e) => setNewEvent({ ...newEvent, image_url: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                      placeholder="/src/assets/images/..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Category</label>
                     <select
                       value={newEvent.category}
                       onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none bg-white transition-all text-sm"
                     >
-                      <option value="exhibition">Exhibition</option>
-                      <option value="workshop">Workshop</option>
                       <option value="talk">Talk</option>
+                      <option value="workshop">Workshop</option>
+                      <option value="exhibition">Exhibition</option>
                       <option value="family">Family</option>
                     </select>
                   </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Image URL</label>
+                    <input
+                      type="text"
+                      placeholder="https://..."
+                      value={newEvent.image_url}
+                      onChange={(e) => setNewEvent({ ...newEvent, image_url: e.target.value })}
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Description</label>
+                    <textarea
+                      value={newEvent.description}
+                      onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none focus:ring-1 focus:ring-black outline-none min-h-[100px] text-sm italic"
+                      placeholder="Event details..."
+                    />
+                  </div>
                   <button
                     type="submit"
-                    className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition-colors font-medium shadow-sm flex items-center justify-center gap-2"
+                    className="w-full bg-black text-white py-4 rounded-none hover:bg-gray-900 transition-all font-bold text-[10px] uppercase tracking-[0.3em] shadow-lg flex items-center justify-center gap-3 mt-4"
                   >
-                    <Plus size={18} /> Create Event
+                    <Plus size={14} /> Create Event
                   </button>
                 </form>
               </div>
 
               {/* Event List */}
-              <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <h2 className="text-lg font-semibold mb-4 text-gray-800">Upcoming Events</h2>
+              <div className="lg:col-span-2 bg-white p-10 rounded-none shadow-sm border border-gray-100">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 text-black pb-2 border-b border-black w-fit">Upcoming Events</h2>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
-                    <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
-                      <tr>
-                        <th className="px-4 py-3 rounded-tl-md">Date</th>
-                        <th className="px-4 py-3">Title</th>
-                        <th className="px-4 py-3">Category</th>
-                        <th className="px-4 py-3 rounded-tr-md text-right">Actions</th>
+                    <thead className="text-gray-400 text-[10px] uppercase font-black tracking-widest">
+                      <tr className="border-b border-gray-50">
+                        <th className="px-4 py-4">Date</th>
+                        <th className="px-4 py-4">Title</th>
+                        <th className="px-4 py-4">Category</th>
+                        <th className="px-4 py-4 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -380,16 +497,16 @@ export default function Dashboard() {
                         </tr>
                       ) : (
                         events.map((event) => (
-                          <tr key={event.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-4 py-3 text-gray-600 font-mono text-sm">{event.date}</td>
-                            <td className="px-4 py-3 font-medium text-gray-800">{event.title}</td>
-                            <td className="px-4 py-3 text-sm text-gray-500 capitalize">{event.category}</td>
-                            <td className="px-4 py-3 text-right">
+                          <tr key={event.id} className="hover:bg-gray-50 transition-all border-b border-gray-50 last:border-none">
+                            <td className="px-4 py-6 text-gray-400 font-mono text-[10px]">{event.date}</td>
+                            <td className="px-4 py-6 font-bold text-black uppercase tracking-tighter text-sm">{event.title}</td>
+                            <td className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-gray-300 italic">{event.category}</td>
+                            <td className="px-4 py-6 text-right">
                               <button
                                 onClick={() => handleDeleteEvent(event.id)}
-                                className="text-gray-400 hover:text-red-600 transition-colors p-1"
+                                className="text-gray-200 hover:text-black transition-all p-2 border border-transparent hover:border-black"
                               >
-                                <Trash2 size={18} />
+                                <Trash2 size={12} />
                               </button>
                             </td>
                           </tr>
@@ -403,42 +520,43 @@ export default function Dashboard() {
           ) : activeTab === "holidays" ? (
             <>
               {/* Holiday UI Same as Before */}
-              <div className="bg-white p-6 rounded-lg shadow-sm h-fit border border-gray-100">
-                <h2 className="text-lg font-semibold mb-4 text-gray-800">Add New Holiday</h2>
-                <form onSubmit={handleCreateHoliday} className="space-y-4">
+              <div className="bg-white p-10 rounded-none shadow-sm h-fit border border-gray-100">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 text-black pb-2 border-b border-black w-fit">Add New Holiday</h2>
+                <form onSubmit={handleCreateHoliday} className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Holiday Name</label>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Holiday Name</label>
                     <input
                       type="text"
                       value={newHoliday.name}
                       onChange={(e) => setNewHoliday({ ...newHoliday, name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm"
+                      placeholder="e.g. MONARCH DAY"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Date</label>
                     <input
                       type="date"
                       value={newHoliday.date}
                       onChange={(e) => setNewHoliday({ ...newHoliday, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm"
                     />
                   </div>
-                  <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded-md">Create Holiday</button>
+                  <button type="submit" className="w-full bg-black text-white py-4 rounded-none font-bold text-[10px] uppercase tracking-[0.3em] hover:bg-gray-900 transition-all mt-4">Create Holiday</button>
                 </form>
               </div>
 
-              <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <h2 className="text-lg font-semibold mb-4 text-gray-800">Scheduled Holidays</h2>
+              <div className="lg:col-span-2 bg-white p-10 rounded-none shadow-sm border border-gray-100">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 text-black pb-2 border-b border-black w-fit">Scheduled Holidays</h2>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-gray-50">
                       {holidays.map((h) => (
-                        <tr key={h.id}>
-                          <td className="px-4 py-3">{h.date}</td>
-                          <td className="px-4 py-3 font-medium">{h.name}</td>
-                          <td className="px-4 py-3 text-right">
-                            <button onClick={() => handleDeleteHoliday(h.id)} className="text-red-600"><Trash2 size={18} /></button>
+                        <tr key={h.id} className="hover:bg-gray-50 transition-all">
+                          <td className="px-4 py-4 text-sm font-mono text-gray-400">{h.date}</td>
+                          <td className="px-4 py-4 font-bold text-black uppercase tracking-tighter">{h.name}</td>
+                          <td className="px-4 py-4 text-right">
+                            <button onClick={() => handleDeleteHoliday(h.id)} className="text-gray-300 hover:text-black transition-all p-2 border border-transparent hover:border-black"><Trash2 size={16} /></button>
                           </td>
                         </tr>
                       ))}
@@ -450,22 +568,23 @@ export default function Dashboard() {
           ) : activeTab === "artworks" ? (
             <>
               {/* Artwork UI Same as Before */}
-              <div className="bg-white p-6 rounded-lg shadow-sm h-fit border border-gray-100">
-                <form onSubmit={handleCreateArtwork} className="space-y-4">
+              <div className="bg-white p-10 rounded-none shadow-sm h-fit border border-gray-100">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 text-black pb-2 border-b border-black w-fit">Add Artwork</h2>
+                <form onSubmit={handleCreateArtwork} className="space-y-6">
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Title</label>
-                    <input type="text" placeholder="Artwork Title" value={newArtwork.title} onChange={e => setNewArtwork({ ...newArtwork, title: e.target.value })} className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none" />
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Title</label>
+                    <input type="text" placeholder="Artwork Title" value={newArtwork.title} onChange={e => setNewArtwork({ ...newArtwork, title: e.target.value })} className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Creator</label>
-                    <input type="text" placeholder="Artist / Creator" value={newArtwork.creator} onChange={e => setNewArtwork({ ...newArtwork, creator: e.target.value })} className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none" />
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Creator</label>
+                    <input type="text" placeholder="Artist / Creator" value={newArtwork.creator} onChange={e => setNewArtwork({ ...newArtwork, creator: e.target.value })} className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Department</label>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Department</label>
                     <select
                       value={newArtwork.department}
                       onChange={e => setNewArtwork({ ...newArtwork, department: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all bg-white text-sm"
                     >
                       <option value="African Art">African Art</option>
                       <option value="American Art">American Art</option>
@@ -477,46 +596,127 @@ export default function Dashboard() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Image URL</label>
-                    <input type="text" placeholder="https://..." value={newArtwork.image_url} onChange={e => setNewArtwork({ ...newArtwork, image_url: e.target.value })} className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none" />
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Metadata</label>
+                    <input type="text" placeholder="e.g. 20th Century • Wood, Pigment" value={newArtwork.metadata_info} onChange={e => setNewArtwork({ ...newArtwork, metadata_info: e.target.value })} className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm italic" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Metadata Description</label>
-                    <textarea
-                      placeholder="Dimensions, medium, acquisition date, etc."
-                      value={newArtwork.metadata_info}
-                      onChange={e => setNewArtwork({ ...newArtwork, metadata_info: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none min-h-[80px]"
-                    />
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Curator's Insight</label>
+                    <textarea placeholder="Insightful details about the piece..." value={newArtwork.curators_insight} onChange={e => setNewArtwork({ ...newArtwork, curators_insight: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border-none focus:ring-1 focus:ring-black outline-none min-h-[80px] text-sm italic" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Curator's Insight</label>
-                    <textarea
-                      placeholder="Context, history, and significance..."
-                      value={newArtwork.curators_insight}
-                      onChange={e => setNewArtwork({ ...newArtwork, curators_insight: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none min-h-[80px]"
-                    />
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Image URL</label>
+                    <input type="text" placeholder="https://..." value={newArtwork.image_url} onChange={e => setNewArtwork({ ...newArtwork, image_url: e.target.value })} className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm" />
                   </div>
-                  <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-md font-bold uppercase tracking-widest text-xs hover:bg-indigo-700 transition-colors shadow-md">
-                    Add Artwork to Collection
+                  <button type="submit" className="w-full bg-black text-white py-4 rounded-none font-bold uppercase tracking-[0.3em] text-[10px] hover:bg-gray-900 transition-all shadow-lg mt-4">
+                    Add to Collection
                   </button>
                 </form>
               </div>
-              <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="lg:col-span-2 bg-white p-10 rounded-none shadow-sm border border-gray-100">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 text-black pb-2 border-b border-black w-fit">Artwork Collection</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {artworks.map(art => (
-                    <div key={art.id} className="flex gap-4 p-4 border rounded-lg bg-gray-50 items-center">
-                      <img src={art.image_url} className="w-16 h-16 object-cover rounded shadow-sm" alt={art.title} />
+                    <div key={art.id} className="flex gap-6 p-6 border-b border-gray-50 items-center hover:bg-gray-50 transition-all group">
+                      <div className="w-20 h-20 bg-gray-100 overflow-hidden">
+                        <img src={art.image_url} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt={art.title} />
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-gray-800 truncate">{art.title}</p>
-                        <p className="text-sm text-gray-500 truncate">{art.creator}</p>
-                        <span className="inline-block px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[10px] font-bold rounded mt-1 uppercase">
+                        <p className="font-bold text-black uppercase tracking-tighter truncate text-sm">{art.title}</p>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">{art.creator}</p>
+                        <span className="inline-block mt-3 px-2 py-0.5 border border-gray-100 text-gray-400 text-[8px] font-black uppercase tracking-widest">
                           {art.department}
                         </span>
                       </div>
-                      <button onClick={() => handleDeleteArtwork(art.id)} className="text-gray-400 hover:text-red-500 transition-colors">
-                        <Trash2 size={18} />
+                      <button onClick={() => handleDeleteArtwork(art.id)} className="text-gray-200 hover:text-black transition-all p-2">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : activeTab === "management" ? (
+            <>
+              {/* Admin Management UI */}
+              <div className="bg-white p-10 rounded-none shadow-sm h-fit border border-gray-100">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 text-black pb-2 border-b border-black w-fit">Add New Admin</h2>
+                <form onSubmit={handleCreateAdmin} className="space-y-6">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Email Address</label>
+                    <input
+                      type="email"
+                      required
+                      value={newAdmin.email}
+                      onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })}
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm"
+                      placeholder="admin@high.org"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Password</label>
+                    <div className="relative">
+                      <input
+                        type={showAdminPassword ? "password" : "text"}
+                        required
+                        value={newAdmin.password}
+                        onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })}
+                        className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm pr-10"
+                        placeholder="••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowAdminPassword(!showAdminPassword)}
+                        className="absolute right-0 top-2 text-gray-400 hover:text-black transition-colors"
+                      >
+                        {showAdminPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Role</label>
+                    <select
+                      value={newAdmin.role}
+                      onChange={(e) => setNewAdmin({ ...newAdmin, role: e.target.value })}
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all bg-white text-sm"
+                    >
+                      <option value="admin">Regular Admin</option>
+                      <option value="super_admin">Super Admin</option>
+                    </select>
+                  </div>
+                  <button type="submit" className="w-full bg-black text-white py-4 rounded-none font-bold text-[10px] uppercase tracking-[0.3em] hover:bg-gray-900 shadow-xl transition-all mt-4">
+                    Grant Access
+                  </button>
+                </form>
+              </div>
+
+              <div className="lg:col-span-2 bg-white p-10 rounded-none shadow-sm border border-gray-100">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 text-black pb-2 border-b border-black w-fit">Admin Management</h2>
+                <div className="divide-y divide-gray-50">
+                  {users.map((u) => (
+                    <div key={u.id} className="flex justify-between items-center py-6 px-2 hover:bg-gray-50 transition-all group">
+                      <div className="flex items-center gap-6">
+                        <div className={`w-12 h-12 flex items-center justify-center border ${u.role === 'super_admin' ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-400 group-hover:border-black group-hover:text-black transition-all'}`}>
+                          {u.role === 'super_admin' ? <ShieldCheck size={20} /> : <Users size={20} />}
+                        </div>
+                        <div>
+                          <p className="font-bold text-black uppercase tracking-tighter text-sm flex items-center gap-3">
+                            {u.email}
+                            {u.email === localStorage.getItem("admin_email") && (
+                              <span className="text-[8px] font-black border border-black px-1.5 py-0.5 tracking-widest italic">OWNER</span>
+                            )}
+                          </p>
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300 mt-1">
+                            {u.role === 'super_admin' ? 'Super Admin' : 'Regular Admin'}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteAdmin(u.id)}
+                        disabled={u.email === localStorage.getItem("admin_email")}
+                        className={`p-3 transition-all ${u.email === localStorage.getItem("admin_email") ? 'opacity-0 cursor-not-allowed' : 'text-gray-200 hover:text-black hover:border-black border border-transparent'}`}
+                        title={u.email === localStorage.getItem("admin_email") ? "You cannot delete yourself" : "Remove Admin"}
+                      >
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   ))}
@@ -526,17 +726,15 @@ export default function Dashboard() {
           ) : (
             <>
               {/* Newsletter Management UI */}
-              <div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-lg border border-gray-100 scroll-mt-8">
-                <div className="flex justify-between items-center mb-8 pb-4 border-b">
-                  <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                    <Mail className="text-indigo-600" /> Newsletter Editor
-                  </h2>
-                  <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg">
+              <div className="lg:col-span-2 bg-white p-10 rounded-none shadow-sm border border-gray-100">
+                <div className="flex justify-between items-center mb-12 pb-4 border-b border-black">
+                  <h2 className="text-xs font-black uppercase tracking-[0.3em] text-black">Newsletter Editor</h2>
+                  <div className="flex items-center gap-2 border border-gray-100 p-1">
                     {["en", "es", "fr"].map(l => (
                       <button
                         key={l}
                         onClick={() => setNewsletterEditor({ ...newsletterEditor, lang: l })}
-                        className={`px-3 py-1 text-xs font-bold uppercase rounded-md transition-all ${newsletterEditor.lang === l ? "bg-white text-indigo-600 shadow-sm" : "text-gray-400"}`}
+                        className={`px-3 py-1 text-[10px] font-black uppercase transition-all ${newsletterEditor.lang === l ? "bg-black text-white" : "text-gray-300 hover:text-black"}`}
                       >
                         {l}
                       </button>
@@ -676,32 +874,21 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="pt-6 border-t flex flex-col gap-6">
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-gray-400">Newsletter Citation</label>
-                      <input
-                        type="text"
-                        className="w-full px-4 py-3 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                        placeholder="e.g. © 2026 High Museum of Art. All rights reserved."
-                        value={newsletterEditor.citation}
-                        onChange={e => setNewsletterEditor({ ...newsletterEditor, citation: e.target.value })}
-                      />
-                    </div>
-
+                  <div className="pt-10 border-t border-gray-100 flex flex-col gap-6">
                     <button
                       type="submit"
-                      className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-2"
+                      className="w-full py-4 bg-black text-white font-bold rounded-none shadow-xl hover:bg-gray-900 transition-all flex items-center justify-center gap-3 uppercase tracking-[0.3em] text-[10px]"
                     >
-                      <Save size={18} /> Save & Schedule
+                      <Save size={14} /> Save & Schedule
                     </button>
                   </div>
                 </form>
               </div>
 
               {/* History / Drafts List */}
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col h-fit">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-6">Newsletter Archive</h3>
-                <div className="space-y-4">
+              <div className="bg-white p-10 rounded-none shadow-sm border border-gray-100 flex flex-col h-fit">
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-black mb-8 pb-2 border-b border-black w-fit">Newsletter Archive</h3>
+                <div className="space-y-6">
                   {newsletters.map(n => (
                     <div
                       key={n.id}
@@ -710,27 +897,27 @@ export default function Dashboard() {
                         sections: n.sections || [],
                         publish_at: n.publish_at || new Date().toISOString().slice(0, 16)
                       })}
-                      className="p-4 border rounded-lg hover:border-indigo-600 hover:bg-slate-50 cursor-pointer transition-all group"
+                      className="p-6 border border-gray-50 hover:border-black transition-all group cursor-pointer"
                     >
-                      <div className="flex justify-between items-start mb-1">
-                        <div className="flex gap-2">
-                          <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-slate-100 rounded text-slate-500 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex gap-3">
+                          <span className="text-[8px] font-black uppercase px-2 py-0.5 border border-black group-hover:bg-black group-hover:text-white transition-all">
                             {n.lang}
                           </span>
-                          <span className={`text-[10px] font-bold ${new Date(n.publish_at) > new Date() ? "text-amber-500" : "text-green-500"}`}>
-                            {new Date(n.publish_at) > new Date() ? "Scheduled" : "Published"}
+                          <span className={`text-[8px] font-black uppercase tracking-widest ${new Date(n.publish_at) > new Date() ? "text-gray-400" : "text-black"}`}>
+                            {new Date(n.publish_at) > new Date() ? "Pending" : "Dispatched"}
                           </span>
                         </div>
                         <button
                           onClick={(e) => handleDeleteNewsletter(n.id, e)}
-                          className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                          className="text-gray-200 hover:text-black transition-colors"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={12} />
                         </button>
                       </div>
-                      <p className="font-bold text-gray-800 line-clamp-1">{n.title}</p>
-                      <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1 uppercase tracking-tighter">
-                        <Clock size={10} /> {new Date(n.publish_at).toLocaleDateString()} at {new Date(n.publish_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <p className="font-bold text-black uppercase tracking-tighter text-sm line-clamp-1">{n.title}</p>
+                      <p className="text-[10px] text-gray-400 mt-2 flex items-center gap-2 uppercase tracking-widest">
+                        <Clock size={10} /> {new Date(n.publish_at).toLocaleDateString()}
                       </p>
                     </div>
                   ))}

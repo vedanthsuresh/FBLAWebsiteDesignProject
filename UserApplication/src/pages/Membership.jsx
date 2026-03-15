@@ -16,7 +16,10 @@ import {
   Award,
   Globe,
   Home,
-  Trash2
+  Trash2,
+  Eye,
+  EyeOff,
+  Lock
 } from 'lucide-react';
 import Footer from '../components/Footer';
 
@@ -37,8 +40,10 @@ function Membership() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [error, setError] = useState(null);
-  const [cancelError, setCancelError] = useState(null);
+   const [cancelError, setCancelError] = useState(null);
   const [cancelSuccess, setCancelSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(true);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(true);
 
   const handleLevelSelect = (level) => {
     setSelectedLevel(level);
@@ -286,27 +291,45 @@ function Membership() {
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
+                             <div className="space-y-2">
                               <label className="text-xs font-black uppercase tracking-widest text-slate-500">Password</label>
-                              <input
-                                required
-                                type="password"
-                                value={cancelData.password}
-                                onChange={(e) => setCancelData({ ...cancelData, password: e.target.value })}
-                                placeholder="••••••••"
-                                className="w-full px-4 py-3 md:py-4 bg-white border-2 border-slate-100 focus:border-black outline-none transition-all unna text-lg md:text-xl"
-                              />
+                              <div className="relative">
+                                <input
+                                  required
+                                  type={showPassword ? "password" : "text"}
+                                  value={cancelData.password}
+                                  onChange={(e) => setCancelData({ ...cancelData, password: e.target.value })}
+                                  placeholder="••••••••"
+                                  className="w-full px-4 pr-12 py-3 md:py-4 bg-white border-2 border-slate-100 focus:border-black outline-none transition-all unna text-lg md:text-xl"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-black transition-colors"
+                                >
+                                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                              </div>
                             </div>
-                            <div className="space-y-2">
+                             <div className="space-y-2">
                               <label className="text-xs font-black uppercase tracking-widest text-slate-500">{t('membership.confirm_password')}</label>
-                              <input
-                                required
-                                type="password"
-                                value={cancelData.confirmPassword}
-                                onChange={(e) => setCancelData({ ...cancelData, confirmPassword: e.target.value })}
-                                placeholder="••••••••"
-                                className="w-full px-4 py-3 md:py-4 bg-white border-2 border-slate-100 focus:border-black outline-none transition-all unna text-lg md:text-xl"
-                              />
+                              <div className="relative">
+                                <input
+                                  required
+                                  type={showConfirmPassword ? "password" : "text"}
+                                  value={cancelData.confirmPassword}
+                                  onChange={(e) => setCancelData({ ...cancelData, confirmPassword: e.target.value })}
+                                  placeholder="••••••••"
+                                  className="w-full px-4 pr-12 py-3 md:py-4 bg-white border-2 border-slate-100 focus:border-black outline-none transition-all unna text-lg md:text-xl"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-black transition-colors"
+                                >
+                                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                              </div>
                             </div>
                           </div>
 
@@ -403,17 +426,27 @@ function Membership() {
                     />
                   </div>
 
-                  <div className="space-y-2">
+                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-widest text-slate-500">{t('membership.create_password')}</label>
-                    <input
-                      required
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                      placeholder="••••••••"
-                      className="w-full px-4 py-4 bg-slate-50 border-2 border-slate-100 focus:border-black outline-none transition-all unna text-xl"
-                    />
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                      <input
+                        required
+                        type={showPassword ? "password" : "text"}
+                        name="password"
+                        value={formData.password}
+                        onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                        placeholder="••••••••"
+                        className="w-full pl-12 pr-12 py-4 bg-slate-50 border-2 border-slate-100 focus:border-black outline-none transition-all unna text-xl"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-black transition-colors"
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
                   </div>
 
                   {error && (

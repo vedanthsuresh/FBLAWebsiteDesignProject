@@ -113,8 +113,8 @@ function FeaturedArts() {
           className="w-full flex items-center justify-between px-4 md:px-8 py-3"
         >
           <div className="flex items-center gap-3">
-            <span className="text-[10px] md:text-sm font-black uppercase tracking-widest text-slate-400">Filter</span>
-            <span className="text-[10px] md:text-sm font-black uppercase tracking-widest text-black bg-slate-100 px-3 md:px-5 py-1 md:py-2 rounded-full">
+            <span className="text-[9px] md:text-xs font-black uppercase tracking-widest text-slate-400">Filter</span>
+            <span className="text-[9px] md:text-xs font-black uppercase tracking-widest text-black bg-slate-100 px-3 md:px-5 py-1 md:py-2 rounded-full">
               {activeDepartment === 'all'
                 ? t('featured.all_departments')
                 : activeDepartment === 'favorites'
@@ -128,23 +128,23 @@ function FeaturedArts() {
             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-full shadow-inner">
               <button
                 onClick={(e) => { e.stopPropagation(); setViewMode('carousel'); }}
-                className={`flex items-center gap-1.5 px-3 md:px-5 py-1.5 md:py-2.5 text-[9px] md:text-xs font-black uppercase tracking-widest transition-all rounded-full
+                className={`flex items-center gap-1.5 px-3 md:px-5 py-1.5 md:py-2.5 text-[8px] md:text-[11px] font-black uppercase tracking-widest transition-all rounded-full
                   ${viewMode === 'carousel' ? 'bg-white shadow-md text-black' : 'text-slate-400'}`}
               >
-                <Layers className="w-[11px] h-[11px] md:w-[14px] md:h-[14px]" />
+                <Layers className="w-[10px] h-[10px] md:w-[12px] md:h-[12px]" />
                 <span className="hidden sm:inline">{t('featured.view_carousel')}</span>
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); setViewMode('grid'); }}
-                className={`flex items-center gap-1.5 px-3 md:px-5 py-1.5 md:py-2.5 text-[9px] md:text-xs font-black uppercase tracking-widest transition-all rounded-full
+                className={`flex items-center gap-1.5 px-3 md:px-5 py-1.5 md:py-2.5 text-[8px] md:text-[11px] font-black uppercase tracking-widest transition-all rounded-full
                   ${viewMode === 'grid' ? 'bg-white shadow-md text-black' : 'text-slate-400'}`}
               >
-                <LayoutGrid className="w-[11px] h-[11px] md:w-[14px] md:h-[14px]" />
+                <LayoutGrid className="w-[10px] h-[10px] md:w-[12px] md:h-[12px]" />
                 <span className="hidden sm:inline">{t('featured.view_grid')}</span>
               </button>
             </div>
             <ChevronDown
-              size={16}
+              size={14}
               className={`text-slate-400 transition-transform duration-300 ${filtersOpen ? 'rotate-180' : ''}`}
             />
           </div>
@@ -171,12 +171,12 @@ function FeaturedArts() {
                         setCurrentArtwork(0);
                         setFiltersOpen(false);
                       }}
-                      className={`flex-shrink-0 px-5 md:px-8 py-2 md:py-3 text-[10px] md:text-xs lg:text-sm font-black uppercase tracking-widest transition-all rounded-full whitespace-nowrap flex items-center gap-2
+                      className={`flex-shrink-0 px-4 md:px-6 py-1.5 md:py-2 text-[9px] md:text-[11px] lg:text-xs font-black uppercase tracking-widest transition-all rounded-full whitespace-nowrap flex items-center gap-2
                         ${activeDepartment === dep
                           ? 'bg-black text-white shadow-lg'
                           : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
                     >
-                      {dep === 'favorites' && <Heart size={14} fill={activeDepartment === 'favorites' ? 'white' : 'none'} className={activeDepartment === 'favorites' ? 'text-white' : 'text-slate-400'} />}
+                      {dep === 'favorites' && <Heart size={12} fill={activeDepartment === 'favorites' ? 'white' : 'none'} className={activeDepartment === 'favorites' ? 'text-white' : 'text-slate-400'} />}
                       {dep === 'all'
                         ? t('featured.all_departments')
                         : dep === 'favorites'
@@ -245,7 +245,7 @@ function FeaturedArts() {
               >
                 {/* Draggable carousel — identical behavior to Home reviews carousel */}
                 <motion.div
-                  className="grid grid-cols-1 items-start cursor-grab active:cursor-grabbing rounded-[2.5rem] bg-slate-50 shadow-2xl border border-black/5 overflow-hidden"
+                  className="grid grid-cols-1 items-start cursor-grab active:cursor-grabbing rounded-[2.5rem] bg-slate-50 shadow-2xl border border-black/5 overflow-hidden relative"
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
                   dragElastic={0.2}
@@ -296,27 +296,40 @@ function FeaturedArts() {
                           <p className="text-[9px] md:text-xs font-black uppercase tracking-[0.2em] text-black bg-slate-100 px-3 md:px-4 py-1.5 rounded-full">
                             {artwork.name}
                           </p>
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{artwork.metadata}</span>
-                        </div>
-                        <p className="unna text-base md:text-xl lg:text-2xl text-slate-800 leading-relaxed italic mb-6 lg:mb-8 max-w-2xl mx-auto lg:mx-0">
-                          "{artwork.description}"
-                        </p>
-                        <div className="flex items-center gap-3 justify-center lg:justify-start">
-                          <button
-                            onClick={() => setSelectedArtwork(artwork)}
-                            className="px-6 md:px-8 py-3 md:py-4 bg-black text-white text-[9px] md:text-xs font-black uppercase tracking-widest rounded-full hover:bg-slate-800 transition-all shadow-xl"
-                          >
-                            {t('featured.artwork_details')}
-                          </button>
-                          <button
-                            onClick={() => toggleFavorite(artwork.id)}
-                            className={`p-3 md:p-4 rounded-full border border-black/5 hover:bg-black hover:text-white transition-all shadow-md
-                              ${favorites.includes(artwork.id) ? 'bg-black text-white' : 'bg-white text-black'}`}
-                          >
-                            <Heart size={16} fill={favorites.includes(artwork.id) ? 'currentColor' : 'none'} />
-                          </button>
                         </div>
                       </div>
+
+                      {/* Navigation indicators & controls */}
+                      {filteredArtworks.length > 1 && (
+                        <>
+                          {/* Fractional Counter - Center Bottom Mobile/Desktop */}
+                          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20 pointer-events-none">
+                            <span className="text-[10px] font-black tracking-widest text-black/20">
+                              {(index + 1).toString().padStart(2, '0')}
+                            </span>
+                            <div className="w-8 h-px bg-black/5" />
+                            <span className="text-[10px] font-black tracking-widest text-black">
+                              {filteredArtworks.length.toString().padStart(2, '0')}
+                            </span>
+                          </div>
+
+                          {/* Mobile-specific nav arrows (compact) */}
+                          <div className="flex lg:hidden absolute bottom-5 left-8 right-8 justify-between z-20 pointer-events-none">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); prevArtwork(); }}
+                              className="w-10 h-10 flex items-center justify-center bg-white/50 backdrop-blur-md rounded-full text-slate-400 hover:text-black hover:bg-white transition-all pointer-events-auto shadow-sm"
+                            >
+                              <ChevronLeft size={18} />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); nextArtwork(); }}
+                              className="w-10 h-10 flex items-center justify-center bg-white/50 backdrop-blur-md rounded-full text-slate-400 hover:text-black hover:bg-white transition-all pointer-events-auto shadow-sm"
+                            >
+                              <ChevronRight size={18} />
+                            </button>
+                          </div>
+                        </>
+                      )}
 
                       {/* Desktop nav arrows */}
                       {filteredArtworks.length > 1 && (
@@ -333,6 +346,18 @@ function FeaturedArts() {
                   )) : (
                     <div className="col-start-1 row-start-1 text-center p-20">
                       <p className="text-slate-400 unna italic text-2xl">{t('calendar.no_events')}</p>
+                    </div>
+                  )}
+
+                  {/* Horizontal Progress Line at bottom */}
+                  {filteredArtworks.length > 1 && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/5 z-30">
+                      <motion.div
+                        initial={false}
+                        animate={{ width: `${((currentArtwork + 1) / filteredArtworks.length) * 100}%` }}
+                        className="h-full bg-slate-900"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
                     </div>
                   )}
                 </motion.div>
@@ -391,8 +416,6 @@ function FeaturedArts() {
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                           {artwork.name}
                         </p>
-                        <div className="w-1 h-1 rounded-full bg-slate-300" />
-                        <p className="text-[10px] font-bold text-slate-400">{artwork.department}</p>
                       </div>
                     </div>
                   </motion.div>

@@ -13,7 +13,9 @@ import {
   Calendar,
   ExternalLink,
   LogOut,
-  Trash2
+  Trash2,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import Footer from '../components/Footer';
 
@@ -23,7 +25,8 @@ function Newsletter() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [newsletter, setNewsletter] = useState(null);
-  const [loading, setLoading] = useState(false);
+   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -211,16 +214,23 @@ function Newsletter() {
 
                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-widest text-slate-500">{t('membership.create_password')}</label>
-                    <div className="relative">
+                     <div className="relative">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                       <input
                         required
-                        type="password"
+                        type={showPassword ? "password" : "text"}
                         value={formData.password}
                         onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                         placeholder="••••••••"
-                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-100 focus:border-black outline-none transition-all unna text-xl"
+                        className="w-full pl-12 pr-12 py-4 bg-slate-50 border-2 border-slate-100 focus:border-black outline-none transition-all unna text-xl"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-black transition-colors"
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
                     </div>
                   </div>
 
