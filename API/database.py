@@ -26,6 +26,14 @@ class Event(Base):
     description = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
     category = Column(String, nullable=True)
+    recurrence = Column(String, nullable=True, default="none")
+
+class EventException(Base):
+    __tablename__ = "event_exceptions"
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(Integer, index=True) # avoiding ForeignKey for strict sqlite compatibility if pragma foreign_keys is off
+    exception_date = Column(Date, index=True)
+
 
 class Holiday(Base):
     __tablename__ = "holidays"

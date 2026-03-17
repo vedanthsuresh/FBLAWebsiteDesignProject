@@ -82,16 +82,62 @@ function CalendarView({ activeCategory = 'all' }) {
       return [];
     }
 
-    const apiEvents = eventsData[key] || [];
+    // Accumulate all events that fall on this day
+    const recurringAndExactEvents = [];
+    const seenTitles = new Set();
+    
+    // Check all dates in eventsData
+    Object.keys(eventsData).forEach(eventDateStr => {
+      const eventDate = new Date(`${eventDateStr}T12:00:00`); // Use noon to avoid timezone shift issues
+      const eventsOnThatDate = eventsData[eventDateStr] || [];
+
+      eventsOnThatDate.forEach(ev => {
+        let shouldInclude = false;
+        
+        // Ensure ev is treated as object to access properties
+        const isObject = typeof ev === 'object';
+        const title = isObject ? ev.title : ev;
+        const recurrence = isObject ? ev.recurrence : 'none';
+        const exceptionDates = isObject && ev.exception_dates ? ev.exception_dates : [];
+
+        // 0. Skip if this exact date is in the exceptions list
+        const currentDateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+        if (exceptionDates.includes(currentDateStr)) {
+          return; // skip evaluating this event for this date
+        }
+
+        // 1. Exact match
+        if (eventDateStr === key) {
+          shouldInclude = true;
+        } 
+        // Only consider recurrence if the current calendar day is AFTER or ON the event's start date
+        else if (dateObj >= new Date(eventDateStr)) {
+          // 2. Weekly match (same day of week)
+          if (recurrence === 'weekly' && dateObj.getDay() === eventDate.getDay()) {
+            shouldInclude = true;
+          }
+          // 3. Monthly match (same day of month)
+          if (recurrence === 'monthly' && dateObj.getDate() === eventDate.getDate()) {
+            shouldInclude = true;
+          }
+        }
+
+        if (shouldInclude && !seenTitles.has(title)) {
+          recurringAndExactEvents.push(ev);
+          seenTitles.add(title);
+        }
+      });
+    });
+
     const isFirstWeek = day <= 7;
     const isFirstSunTueWed = isFirstWeek && [0, 2, 3].includes(dayOfWeek);
 
     const gaLabel = t('calendar.general_admission');
 
     if (dayOfWeek !== 1 || isFirstSunTueWed) {
-      return [gaLabel, ...apiEvents];
+      return [gaLabel, ...recurringAndExactEvents];
     }
-    return [...apiEvents];
+    return [...recurringAndExactEvents];
   };
 
   const handleDayClick = (date) => {

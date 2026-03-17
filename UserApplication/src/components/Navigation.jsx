@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Globe } from 'lucide-react';
+import { Globe, User, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t, i18n } = useTranslation();
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
@@ -32,7 +35,26 @@ function Navigation() {
           <Link to="/events" className="text-3xl hover:text-slate-500 unna-bold" onClick={() => setIsMenuOpen(false)}>{t('nav.events')}</Link>
           <Link to="/featuredArts" className="text-3xl hover:text-slate-500 unna-bold" onClick={() => setIsMenuOpen(false)}>{t('nav.featuredArts')}</Link>
           <Link to="/visitorInformation" className="text-3xl hover:text-slate-500 unna-bold" onClick={() => setIsMenuOpen(false)}>{t('nav.visitorInfo')}</Link>
-          <Link to="/newsletter" className="text-3xl hover:text-slate-500 unna-bold" onClick={() => setIsMenuOpen(false)}>{t('nav.newsletter')}</Link>
+          {isAuthenticated && (
+            <Link to="/newsletter" className="text-3xl hover:text-slate-500 unna-bold" onClick={() => setIsMenuOpen(false)}>{t('nav.newsletter')}</Link>
+          )}
+
+          {isAuthenticated ? (
+            <button
+              onClick={() => { logout(); setIsMenuOpen(false); navigate('/'); }}
+              className="flex items-center gap-3 text-3xl text-black hover:text-red-500 unna-bold"
+            >
+              <LogOut size={25} /> Sign Out
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="flex items-center gap-3 text-3xl text-black hover:text-slate-500 unna-bold"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <User size={25} /> Sign In
+            </Link>
+          )}
 
           <div className="flex gap-4 pt-8">
             <button onClick={() => changeLanguage('en')} className={`unna text-xl ${i18n.language === 'en' ? 'font-bold underline' : 'opacity-50'}`}>EN</button>
@@ -71,7 +93,9 @@ function Navigation() {
             <Link to="/events" className="hover:text-slate-500" role="menuitem">{t('nav.events')}</Link>
             <Link to="/featuredArts" className="hover:text-slate-500" role="menuitem">{t('nav.featuredArts')}</Link>
             <Link to="/visitorInformation" className="hover:text-slate-500" role="menuitem">{t('nav.visitorInfo')}</Link>
-            <Link to="/newsletter" className="hover:text-slate-500" role="menuitem">{t('nav.newsletter')}</Link>
+            {isAuthenticated && (
+              <Link to="/newsletter" className="hover:text-slate-500" role="menuitem">{t('nav.newsletter')}</Link>
+            )}
 
             <div className="relative group ml-4 pl-4 border-l border-slate-200">
               <button className="flex items-center gap-2 hover:text-slate-500 transition-colors uppercase font-bold tracking-widest text-sm">
@@ -82,6 +106,24 @@ function Navigation() {
                 <button onClick={() => changeLanguage('es')} className="px-4 py-2 hover:bg-slate-50 text-left text-sm unna">Español</button>
                 <button onClick={() => changeLanguage('fr')} className="px-4 py-2 hover:bg-slate-50 text-left text-sm unna">Français</button>
               </div>
+            </div>
+
+            <div className="pl-4 border-l border-slate-200">
+              {isAuthenticated ? (
+                <button
+                  onClick={() => { logout(); navigate('/'); }}
+                  className="flex items-center gap-2 hover:text-red-500 transition-colors uppercase font-bold tracking-widest text-sm text-black"
+                >
+                  <LogOut size={16} /> Sign Out
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="flex items-center gap-2 text-black transition-colors uppercase font-bold tracking-widest text-sm hover:text-slate-500"
+                >
+                  <User size={16} /> Sign In
+                </Link>
+              )}
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { Plus, Trash2, Calendar, LogOut, Palmtree, Image as ImageIcon, Mail, Save, Globe, Clock, ChevronDown, ChevronUp, Users, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { Plus, Trash2, Calendar, LogOut, Palmtree, Image as ImageIcon, Mail, Save, Globe, Clock, ChevronDown, ChevronUp, Users, ShieldCheck, Eye, EyeOff, Pencil, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from 'react';
 
@@ -15,7 +15,7 @@ export default function Dashboard() {
   const role = localStorage.getItem("admin_role");
   const token = localStorage.getItem("admin_token");
 
-  const [newEvent, setNewEvent] = useState({ title: "", date: "", description: "", image_url: "", category: "exhibition" });
+  const [newEvent, setNewEvent] = useState({ title: "", date: "", description: "", image_url: "", category: "exhibition", recurrence: "none" });
   const [newHoliday, setNewHoliday] = useState({ name: "", date: "" });
   const [newArtwork, setNewArtwork] = useState({ title: "", creator: "", image_url: "", metadata_info: "", department: "African Art", curators_insight: "" });
 
@@ -32,6 +32,10 @@ export default function Dashboard() {
   });
 
   const [loading, setLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editType, setEditType] = useState(""); // "event", "holiday", "artwork"
+  const [editingItem, setEditingItem] = useState(null);
+  const [newExceptionDate, setNewExceptionDate] = useState("");
   const navigate = useNavigate();
 
   const API_URL = "http://localhost:8000/api";
@@ -119,7 +123,7 @@ export default function Dashboard() {
       });
       if (res.ok) {
         alert("Event created successfully");
-        setNewEvent({ title: "", date: "", description: "", image_url: "", category: "exhibition" });
+        setNewEvent({ title: "", date: "", description: "", image_url: "", category: "exhibition", recurrence: "none" });
         fetchEvents();
       } else if (res.status === 401) {
         alert("Session expired. Please log in again.");
@@ -356,6 +360,95 @@ export default function Dashboard() {
     }
   };
 
+  const handleEdit = (item, type) => {
+    setEditingItem({ ...item });
+    setEditType(type);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    let url = "";
+    if (editType === "event") url = `${API_URL}/events/${editingItem.id}`;
+    if (editType === "holiday") url = `${API_URL}/holidays/${editingItem.id}`;
+    if (editType === "artwork") url = `${API_URL}/artworks/${editingItem.id}`;
+
+    try {
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(editingItem),
+      });
+
+      if (res.ok) {
+        alert(`${editType.charAt(0).toUpperCase() + editType.slice(1)} updated successfully`);
+        setIsEditModalOpen(false);
+        setEditingItem(null);
+        if (editType === "event") fetchEvents();
+        if (editType === "holiday") fetchHolidays();
+        if (editType === "artwork") fetchArtworks();
+      } else if (res.status === 401) {
+        alert("Session expired. Please log in again.");
+        handleLogout();
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to update: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error updating:", error);
+      alert("Network error while updating");
+    }
+  };
+
+  const handleAddException = async (e) => {
+    e.preventDefault();
+    if (!newExceptionDate) return;
+    try {
+      const res = await fetch(`${API_URL}/events/${editingItem.id}/exceptions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ exception_date: newExceptionDate }),
+      });
+      if (res.ok) {
+        setNewExceptionDate("");
+        const updatedEventsRes = await fetch(`${API_URL}/admin/events`);
+        const updatedEvents = await updatedEventsRes.json();
+        setEvents(updatedEvents);
+        const updatedItem = updatedEvents.find(ev => ev.id === editingItem.id);
+        if (updatedItem) setEditingItem(updatedItem);
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to add skip date: ${errorData.detail}`);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRemoveException = async (dateStr) => {
+    try {
+      const res = await fetch(`${API_URL}/events/${editingItem.id}/exceptions/${dateStr}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const updatedEventsRes = await fetch(`${API_URL}/admin/events`);
+        const updatedEvents = await updatedEventsRes.json();
+        setEvents(updatedEvents);
+        const updatedItem = updatedEvents.find(ev => ev.id === editingItem.id);
+        if (updatedItem) setEditingItem(updatedItem);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("admin_auth");
     navigate("/login");
@@ -450,6 +543,18 @@ export default function Dashboard() {
                     </select>
                   </div>
                   <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Recurrence</label>
+                    <select
+                      value={newEvent.recurrence || "none"}
+                      onChange={(e) => setNewEvent({ ...newEvent, recurrence: e.target.value })}
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none bg-white transition-all text-sm"
+                    >
+                      <option value="none">None</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </select>
+                  </div>
+                  <div>
                     <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Image URL</label>
                     <input
                       type="text"
@@ -499,12 +604,25 @@ export default function Dashboard() {
                         events.map((event) => (
                           <tr key={event.id} className="hover:bg-gray-50 transition-all border-b border-gray-50 last:border-none">
                             <td className="px-4 py-6 text-gray-400 font-mono text-[10px]">{event.date}</td>
-                            <td className="px-4 py-6 font-bold text-black uppercase tracking-tighter text-sm">{event.title}</td>
-                            <td className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-gray-300 italic">{event.category}</td>
-                            <td className="px-4 py-6 text-right">
+                            <td className="px-4 py-6 font-bold text-black uppercase tracking-tighter text-sm flex items-center gap-2">
+                              {event.title}
+                              {event.recurrence && event.recurrence !== 'none' && (
+                                <span className="text-[8px] font-black tracking-widest px-1.5 py-0.5 border border-black rounded-none">
+                                  {event.recurrence}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-gray-300">{event.category}</td>
+                            <td className="px-4 py-6 text-right flex justify-end items-center gap-2">
+                              <button
+                                onClick={() => handleEdit(event, "event")}
+                                className="text-gray-400 hover:text-black transition-all p-2 border border-transparent hover:border-black"
+                              >
+                                <Pencil size={12} />
+                              </button>
                               <button
                                 onClick={() => handleDeleteEvent(event.id)}
-                                className="text-gray-200 hover:text-black transition-all p-2 border border-transparent hover:border-black"
+                                className="text-gray-400 hover:text-black transition-all p-2 border border-transparent hover:border-black"
                               >
                                 <Trash2 size={12} />
                               </button>
@@ -555,8 +673,9 @@ export default function Dashboard() {
                         <tr key={h.id} className="hover:bg-gray-50 transition-all">
                           <td className="px-4 py-4 text-sm font-mono text-gray-400">{h.date}</td>
                           <td className="px-4 py-4 font-bold text-black uppercase tracking-tighter">{h.name}</td>
-                          <td className="px-4 py-4 text-right">
-                            <button onClick={() => handleDeleteHoliday(h.id)} className="text-gray-300 hover:text-black transition-all p-2 border border-transparent hover:border-black"><Trash2 size={16} /></button>
+                          <td className="px-4 py-4 text-right flex justify-end gap-2">
+                            <button onClick={() => handleEdit(h, "holiday")} className="text-gray-400 hover:text-black transition-all p-2 border border-transparent hover:border-black"><Pencil size={12} /></button>
+                            <button onClick={() => handleDeleteHoliday(h.id)} className="text-gray-400 hover:text-black transition-all p-2 border border-transparent hover:border-black"><Trash2 size={12} /></button>
                           </td>
                         </tr>
                       ))}
@@ -627,9 +746,14 @@ export default function Dashboard() {
                           {art.department}
                         </span>
                       </div>
-                      <button onClick={() => handleDeleteArtwork(art.id)} className="text-gray-200 hover:text-black transition-all p-2">
-                        <Trash2 size={14} />
-                      </button>
+                      <div className="flex flex-col gap-2">
+                        <button onClick={() => handleEdit(art, "artwork")} className="text-gray-400 hover:text-black transition-all p-2 border border-transparent hover:border-black">
+                          <Pencil size={12} />
+                        </button>
+                        <button onClick={() => handleDeleteArtwork(art.id)} className="text-gray-400 hover:text-black transition-all p-2">
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -804,7 +928,7 @@ export default function Dashboard() {
                       <button
                         type="button"
                         onClick={addNewsletterSection}
-                        className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-md text-[10px] hover:bg-indigo-100 transition-all flex items-center gap-1"
+                        className="bg-black text-white px-3 py-1 rounded-md text-[10px] hover:bg-white hover:text-black transition-all flex items-center gap-1"
                       >
                         <Plus size={14} /> Add Section
                       </button>
@@ -930,6 +1054,246 @@ export default function Dashboard() {
           )}
         </div>
       </main>
+
+      {/* Edit Modal */}
+      {isEditModalOpen && editingItem && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto p-10 relative">
+            <button
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setEditingItem(null);
+              }}
+              className="absolute top-6 right-6 text-gray-400 hover:text-black transition-colors"
+            >
+              <X size={24} />
+            </button>
+            <h2 className="text-xl font-black uppercase tracking-widest mb-8 pb-4 border-b">
+              Edit {editType}
+            </h2>
+
+            <form onSubmit={handleUpdate} className="space-y-6">
+              {editType === "event" && (
+                <>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Title</label>
+                    <input
+                      type="text"
+                      value={editingItem.title}
+                      onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Date</label>
+                    <input
+                      type="date"
+                      value={editingItem.date}
+                      onChange={(e) => setEditingItem({ ...editingItem, date: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Category</label>
+                    <select
+                      value={editingItem.category}
+                      onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
+                    >
+                      <option value="talk">Talk</option>
+                      <option value="workshop">Workshop</option>
+                      <option value="exhibition">Exhibition</option>
+                      <option value="family">Family</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Recurrence</label>
+                    <select
+                      value={editingItem.recurrence || "none"}
+                      onChange={(e) => setEditingItem({ ...editingItem, recurrence: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
+                    >
+                      <option value="none">None</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </select>
+                  </div>
+
+                  {editingItem.recurrence && editingItem.recurrence !== 'none' && (
+                    <div className="bg-gray-50 border border-gray-100 p-6">
+                      <h4 className="text-xs font-black uppercase tracking-widest text-black mb-4">Exceptions (Skip Dates)</h4>
+                      <div className="flex gap-2 mb-4">
+                        <input
+                          type="date"
+                          value={newExceptionDate}
+                          onChange={(e) => setNewExceptionDate(e.target.value)}
+                          className="flex-1 px-4 py-2 bg-white border-none outline-none focus:ring-1 focus:ring-black text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddException}
+                          className="px-6 bg-black text-white text-[10px] font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                        >
+                          Add Skip
+                        </button>
+                      </div>
+                      {editingItem.exception_dates && editingItem.exception_dates.length > 0 ? (
+                        <ul className="space-y-2">
+                          {editingItem.exception_dates.map(dateStr => (
+                            <li key={dateStr} className="flex items-center justify-between text-sm py-2 border-b border-gray-200">
+                              <span className="font-mono text-gray-600">{dateStr}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveException(dateStr)}
+                                className="text-gray-400 hover:text-black transition-colors"
+                              >
+                                <X size={14} />
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-xs text-gray-400 italic">No exceptions added yet.</p>
+                      )}
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Description</label>
+                    <textarea
+                      value={editingItem.description}
+                      onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black min-h-[100px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Image URL</label>
+                    <input
+                      type="text"
+                      value={editingItem.image_url}
+                      onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
+                    />
+                  </div>
+                </>
+              )}
+
+              {editType === "holiday" && (
+                <>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Holiday Name</label>
+                    <input
+                      type="text"
+                      value={editingItem.name}
+                      onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Date</label>
+                    <input
+                      type="date"
+                      value={editingItem.date}
+                      onChange={(e) => setEditingItem({ ...editingItem, date: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
+                      required
+                    />
+                  </div>
+                </>
+              )}
+
+              {editType === "artwork" && (
+                <>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Title</label>
+                    <input
+                      type="text"
+                      value={editingItem.title}
+                      onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Creator</label>
+                    <input
+                      type="text"
+                      value={editingItem.creator}
+                      onChange={(e) => setEditingItem({ ...editingItem, creator: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Department</label>
+                    <select
+                      value={editingItem.department}
+                      onChange={(e) => setEditingItem({ ...editingItem, department: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
+                    >
+                      <option value="African Art">African Art</option>
+                      <option value="American Art">American Art</option>
+                      <option value="Decorative Arts and Design">Decorative Arts and Design</option>
+                      <option value="European Art">European Art</option>
+                      <option value="Modern and Contemporary Art">Modern and Contemporary Art</option>
+                      <option value="Photography">Photography</option>
+                      <option value="Folk and Self-Taught Art">Folk and Self-Taught Art</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Metadata</label>
+                    <input
+                      type="text"
+                      value={editingItem.metadata_info}
+                      onChange={(e) => setEditingItem({ ...editingItem, metadata_info: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Curator's Insight</label>
+                    <textarea
+                      value={editingItem.curators_insight}
+                      onChange={(e) => setEditingItem({ ...editingItem, curators_insight: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black min-h-[100px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Image URL</label>
+                    <input
+                      type="text"
+                      value={editingItem.image_url}
+                      onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="pt-6 flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setEditingItem(null);
+                  }}
+                  className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 font-bold uppercase tracking-widest text-xs hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-3 bg-black text-white font-bold uppercase tracking-widest text-xs hover:bg-gray-900 transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

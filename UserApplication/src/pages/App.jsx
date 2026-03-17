@@ -11,11 +11,15 @@ import Membership from './Membership'
 import Newsletter from './Newsletter'
 import Citations from './Citations'
 import ChatBot from '../components/Chatbot'
+import { AuthProvider } from '../context/AuthContext'
+import Login from './Login'
 
 function App() {
   return (
-    <div>
-      <ScrollToTop />
+    <AuthProvider>
+      <div>
+        <ScrollToTop />
+
       <Navigation />
 
       <div id="scroll-container" className="h-screen overflow-y-scroll bg-white">
@@ -28,11 +32,14 @@ function App() {
           <Route path="/membership" element={<Membership />} />
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/citations" element={<Citations />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
         <ChatBot />
       </div>
     </div>
+    </AuthProvider>
   )
 }
+
 
 export default App;

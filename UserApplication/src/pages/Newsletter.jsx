@@ -1,40 +1,36 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   Mail,
-  Lock,
-  User,
-  ChevronRight,
-  AlertCircle,
-  CheckCircle,
-  FileText,
-  Bookmark,
   Calendar,
   ExternalLink,
   LogOut,
   Trash2,
-  Eye,
-  EyeOff
+  FileText
 } from 'lucide-react';
 import Footer from '../components/Footer';
+import { useAuth } from '../context/AuthContext';
 
 function Newsletter() {
   const { t, i18n } = useTranslation();
-  const [isLogin, setIsLogin] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const { token, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+  
   const [newsletter, setNewsletter] = useState(null);
-   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('newsletter_token');
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
     if (token) {
       fetchNewsletter(token);
     }
-  }, [i18n.language]); // Refetch if language changes
+  }, [i18n.language, isAuthenticated, token, navigate]);
 
   const fetchNewsletter = async (token) => {
     try {
@@ -48,78 +44,15 @@ function Newsletter() {
       if (response.ok) {
         const data = await response.json();
         setNewsletter(data);
-        setIsAuthenticated(true);
       } else {
-        localStorage.removeItem('newsletter_token');
-        setIsAuthenticated(false);
+        logout();
       }
     } catch (err) {
       console.error(err);
+      setError("Failed to fetch newsletter");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleAuth = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const cleanEmail = formData.email.trim().toLowerCase();
-    const endpoint = isLogin ? '/api/login' : '/api/register';
-
-    console.log(`Attempting ${isLogin ? 'Login' : 'Registration'} for: ${cleanEmail}`);
-
-    // Login uses form-data, Register uses JSON
-    let body;
-    let contentType;
-
-    if (isLogin) {
-      const params = new URLSearchParams();
-      params.append('username', cleanEmail);
-      params.append('password', formData.password);
-      body = params;
-      contentType = 'application/x-www-form-urlencoded';
-    } else {
-      body = JSON.stringify({ ...formData, email: cleanEmail });
-      contentType = 'application/json';
-    }
-
-    try {
-      const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': contentType },
-        body: body
-      });
-
-      console.log(`Auth Response Status: ${response.status}`);
-      const data = await response.json();
-
-      if (response.ok) {
-        if (isLogin) {
-          console.log("Login successful, retrieving newsletter...");
-          localStorage.setItem('newsletter_token', data.access_token);
-          fetchNewsletter(data.access_token);
-        } else {
-          setIsLogin(true);
-          setError("Registration successful! Please log in.");
-        }
-      } else {
-        console.warn("Auth failed:", data.detail);
-        setError(data.detail || "Authentication failed. Check your credentials.");
-      }
-    } catch (err) {
-      console.error("Connection Error:", err);
-      setError("Server connection failed. Is the API running on port 8000?");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('newsletter_token');
-    setIsAuthenticated(false);
-    setNewsletter(null);
   };
 
   const handleUnsubscribe = async () => {
@@ -127,7 +60,6 @@ function Newsletter() {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('newsletter_token');
       const response = await fetch('http://127.0.0.1:8000/api/membership/unsubscribe', {
         method: 'DELETE',
         headers: {
@@ -137,7 +69,8 @@ function Newsletter() {
 
       if (response.ok) {
         alert("Your membership has been cancelled and your account has been deleted.");
-        handleLogout();
+        logout();
+        navigate('/');
       } else {
         const data = await response.json();
         setError(data.detail || "Failed to unsubscribe. Please try again.");
@@ -179,91 +112,7 @@ function Newsletter() {
 
       <section className="py-24 px-8 max-w-7xl mx-auto">
         <AnimatePresence mode="wait">
-          {!isAuthenticated ? (
-            <motion.div
-              key="auth"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="max-w-md mx-auto"
-            >
-              <div className="bg-white border-8 border-black p-12 shadow-2xl">
-                <div className="text-center mb-12">
-                  <div className="inline-block p-4 bg-black text-white mb-6">
-                    <Lock size={32} />
-                  </div>
-                  <h2 className="unna-bold text-4xl uppercase tracking-widest">{t('newsletter.locked')}</h2>
-                  <p className="unna text-lg opacity-60 mt-2">{t('newsletter.unlock')}</p>
-                </div>
-
-                <form onSubmit={handleAuth} className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">{t('tickets.email')}</label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                      <input
-                        required
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                        placeholder="member@example.com"
-                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-100 focus:border-black outline-none transition-all unna text-xl"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">{t('membership.create_password')}</label>
-                     <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                      <input
-                        required
-                        type={showPassword ? "password" : "text"}
-                        value={formData.password}
-                        onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                        placeholder="••••••••"
-                        className="w-full pl-12 pr-12 py-4 bg-slate-50 border-2 border-slate-100 focus:border-black outline-none transition-all unna text-xl"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-black transition-colors"
-                      >
-                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {error && (
-                    <div className="p-4 bg-red-50 text-red-600 border-red-500 flex items-center gap-3 border-l-4 unna font-bold">
-                      <AlertCircle size={20} /> {error}
-                    </div>
-                  )}
-
-                  <button
-                    disabled={loading}
-                    className="w-full bg-black text-white py-6 unna-bold text-2xl uppercase tracking-[0.2em] hover:bg-slate-800 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-                  >
-                    {loading ? (
-                      <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <>{t('newsletter.sign_in')} <ChevronRight size={24} /></>
-                    )}
-                  </button>
-                </form>
-
-                <div className="mt-8 text-center pt-8 border-t border-slate-100">
-                  <p className="unna text-lg opacity-60 mb-2">Not a member yet?</p>
-                  <button
-                    onClick={() => window.location.href = '/membership'}
-                    className="unna text-lg font-bold underline decoration-2 underline-offset-4 hover:text-slate-500 transition-colors"
-                  >
-                    Join Membership to create an account
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ) : (
+          {isAuthenticated && (
             <motion.div
               key="content"
               initial={{ opacity: 0, y: 30 }}
@@ -306,7 +155,10 @@ function Newsletter() {
                           <Trash2 size={14} /> Cancel Membership
                         </button>
                         <button
-                          onClick={handleLogout}
+                          onClick={() => {
+                            logout();
+                            navigate('/');
+                          }}
                           className="flex items-center gap-2 bg-white border border-slate-200 px-6 py-2 unna-bold uppercase tracking-widest text-xs hover:bg-red-50 hover:text-red-600 transition-all rounded-full shadow-sm"
                         >
                           <LogOut size={16} /> Logout

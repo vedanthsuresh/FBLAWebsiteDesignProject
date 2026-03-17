@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Header # type: igno
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm # type: ignore
 from sqlalchemy.orm import Session # type: ignore
-from database import SessionLocal, Event, Holiday, OperatingHour, User, Newsletter, NewsletterLog, EmailQueue, Artwork, engine, Base
+from database import SessionLocal, Event, Holiday, OperatingHour, User, Newsletter, NewsletterLog, EmailQueue, Artwork, EventException, engine, Base
 from datetime import date, datetime, timedelta
 from collections import defaultdict
 from pydantic import BaseModel
@@ -141,6 +141,12 @@ class EventCreate(BaseModel):
     description: Optional[str] = None
     image_url: Optional[str] = None
     category: Optional[str] = None
+    recurrence: Optional[str] = "none"
+
+class EventExceptionCreate(BaseModel):
+    exception_date: date
+
+
 
 class HolidayCreate(BaseModel):
     name: str
@@ -312,26 +318,68 @@ def delete_holiday(
     db.commit()
     return {"status": "deleted"}
 
+@app.put("/api/holidays/{holiday_id}")
+def update_holiday(
+    holiday_id: int,
+    holiday: HolidayCreate,
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
+    db_holiday = db.query(Holiday).filter(Holiday.id == holiday_id).first()
+    if not db_holiday:
+        raise HTTPException(status_code=404, detail="Holiday not found")
+    db_holiday.name = holiday.name
+    db_holiday.date = holiday.date
+    db.commit()
+    db.refresh(db_holiday)
+    return db_holiday
+
 @app.get("/api/events")
 def get_events(db: Session = Depends(get_db)):
     # Public endpoint: grouped by date, including descriptions
     events = db.query(Event).all()
+    
+    # fetch all exceptions
+    exceptions = db.query(EventException).all()
+    exceptions_by_event = defaultdict(list)
+    for ext in exceptions:
+        exceptions_by_event[ext.event_id].append(str(ext.exception_date))
+        
     grouped_events = defaultdict(list)
     for event in events:
         event_data = {
             "title": event.title,
             "description": event.description,
             "image_url": event.image_url,
-            "category": event.category
+            "category": event.category,
+            "recurrence": event.recurrence,
+            "exception_dates": exceptions_by_event.get(event.id, [])
         }
         grouped_events[str(event.date)].append(event_data)
     return {"monthly_events": [grouped_events]}
+
 
 @app.get("/api/admin/events")
 def get_all_events(db: Session = Depends(get_db)):
     # Admin endpoint: flat list with IDs
     events = db.query(Event).order_by(Event.date).all()
-    return events
+    
+    exceptions = db.query(EventException).all()
+    exceptions_by_event = defaultdict(list)
+    for ext in exceptions:
+        exceptions_by_event[ext.event_id].append(str(ext.exception_date))
+        
+    return [{
+        "id": e.id, 
+        "date": e.date, 
+        "title": e.title, 
+        "category": e.category, 
+        "description": e.description, 
+        "image_url": e.image_url, 
+        "recurrence": e.recurrence,
+        "exception_dates": exceptions_by_event.get(e.id, [])
+    } for e in events]
+
 
 @app.post("/api/events")
 def create_event(
@@ -344,9 +392,11 @@ def create_event(
         date=event.date, 
         description=event.description,
         image_url=event.image_url,
-        category=event.category
+        category=event.category,
+        recurrence=event.recurrence
     )
     db.add(db_event)
+
     db.commit()
     db.refresh(db_event)
     return db_event
@@ -363,6 +413,59 @@ def delete_event(
     db.delete(db_event)
     db.commit()
     return {"status": "deleted"}
+
+@app.put("/api/events/{event_id}")
+def update_event(
+    event_id: int,
+    event: EventCreate,
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
+    db_event = db.query(Event).filter(Event.id == event_id).first()
+    if not db_event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    db_event.title = event.title
+    db_event.date = event.date
+    db_event.description = event.description
+    db_event.image_url = event.image_url
+    db_event.category = event.category
+    db_event.recurrence = event.recurrence
+    db.commit()
+    db.refresh(db_event)
+    return db_event
+
+@app.post("/api/events/{event_id}/exceptions")
+def add_event_exception(event_id: int, exception: EventExceptionCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_any_admin)):
+    db_event = db.query(Event).filter(Event.id == event_id).first()
+    if not db_event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Check if exists
+    existing = db.query(EventException).filter(EventException.event_id == event_id, EventException.exception_date == exception.exception_date).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Exception date already exists")
+        
+    new_exception = EventException(event_id=event_id, exception_date=exception.exception_date)
+    db.add(new_exception)
+    db.commit()
+    return {"message": "Exception added"}
+    
+@app.delete("/api/events/{event_id}/exceptions/{date_str}")
+def delete_event_exception(event_id: int, date_str: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_any_admin)):
+    try:
+        dt = date.fromisoformat(date_str)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format, use YYYY-MM-DD")
+        
+    ext = db.query(EventException).filter(EventException.event_id == event_id, EventException.exception_date == dt).first()
+    if not ext:
+        raise HTTPException(status_code=404, detail="Exception not found")
+        
+    db.delete(ext)
+    db.commit()
+    return {"message": "Exception deleted"}
+
+
 
 @app.get("/api/artworks")
 def get_artworks(db: Session = Depends(get_db)):
@@ -403,6 +506,26 @@ def delete_artwork(
     db.delete(db_artwork)
     db.commit()
     return {"status": "deleted"}
+
+@app.put("/api/artworks/{artwork_id}")
+def update_artwork(
+    artwork_id: int,
+    artwork: ArtworkCreate,
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
+    db_artwork = db.query(Artwork).filter(Artwork.id == artwork_id).first()
+    if not db_artwork:
+        raise HTTPException(status_code=404, detail="Artwork not found")
+    db_artwork.title = artwork.title
+    db_artwork.creator = artwork.creator
+    db_artwork.image_url = artwork.image_url
+    db_artwork.metadata_info = artwork.metadata_info
+    db_artwork.department = artwork.department
+    db_artwork.curators_insight = artwork.curators_insight
+    db.commit()
+    db.refresh(db_artwork)
+    return db_artwork
 
 @app.get("/api/status")
 def get_status():
