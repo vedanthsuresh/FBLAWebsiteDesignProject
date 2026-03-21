@@ -274,7 +274,7 @@ function FeaturedArts() {
                       >
                         <img
                           src={artwork.image}
-                          alt={artwork.artwork}
+                          alt={artwork.alt_text || artwork.artwork}
                           className="max-w-full max-h-[260px] md:max-h-[420px] lg:max-h-[520px] object-contain drop-shadow-2xl rounded-2xl pointer-events-none"
                         />
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -383,7 +383,7 @@ function FeaturedArts() {
                     <div className="relative aspect-[4/5] overflow-hidden bg-slate-50 rounded-[1.5rem] md:rounded-[2rem] shadow-lg border border-black/5 mb-4 md:mb-6">
                       <img
                         src={artwork.image}
-                        alt={artwork.artwork}
+                        alt={artwork.alt_text || artwork.artwork}
                         className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-500 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-3">
@@ -464,7 +464,7 @@ function FeaturedArts() {
               <div className="lg:flex-[1.4] bg-slate-50 p-6 md:p-12 lg:p-20 flex items-center justify-center overflow-hidden border-b lg:border-b-0 lg:border-r border-black/5 relative min-h-[300px] md:min-h-[400px]">
                 <img
                   src={selectedArtwork.image}
-                  alt={selectedArtwork.artwork}
+                  alt={selectedArtwork.alt_text || selectedArtwork.artwork}
                   className="max-w-full max-h-[250px] md:max-h-full object-contain drop-shadow-3xl"
                 />
               </div>

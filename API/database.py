@@ -79,6 +79,7 @@ class Artwork(Base):
     metadata_info = Column(String)
     department = Column(String)
     curators_insight = Column(String)
+    alt_text = Column(String, nullable=True)
 
 class Newsletter(Base):
     __tablename__ = "newsletters"

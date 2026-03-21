@@ -186,6 +186,7 @@ class ArtworkCreate(BaseModel):
     metadata_info: str
     department: str
     curators_insight: str
+    alt_text: Optional[str] = None
 
 class NewsletterSection(BaseModel):
     title: str
@@ -487,7 +488,8 @@ def create_artwork(
         image_url=artwork.image_url,
         metadata_info=artwork.metadata_info,
         department=artwork.department,
-        curators_insight=artwork.curators_insight
+        curators_insight=artwork.curators_insight,
+        alt_text=artwork.alt_text
     )
     db.add(db_artwork)
     db.commit()
@@ -523,6 +525,7 @@ def update_artwork(
     db_artwork.metadata_info = artwork.metadata_info
     db_artwork.department = artwork.department
     db_artwork.curators_insight = artwork.curators_insight
+    db_artwork.alt_text = artwork.alt_text
     db.commit()
     db.refresh(db_artwork)
     return db_artwork

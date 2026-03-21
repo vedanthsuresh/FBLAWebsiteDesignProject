@@ -17,7 +17,7 @@ export default function Dashboard() {
 
   const [newEvent, setNewEvent] = useState({ title: "", date: "", description: "", image_url: "", category: "exhibition", recurrence: "none" });
   const [newHoliday, setNewHoliday] = useState({ name: "", date: "" });
-  const [newArtwork, setNewArtwork] = useState({ title: "", creator: "", image_url: "", metadata_info: "", department: "African Art", curators_insight: "" });
+  const [newArtwork, setNewArtwork] = useState({ title: "", creator: "", image_url: "", metadata_info: "", department: "African Art", curators_insight: "", alt_text: "" });
 
   const [newsletterEditor, setNewsletterEditor] = useState({
     lang: "en",
@@ -299,7 +299,7 @@ export default function Dashboard() {
       });
       if (res.ok) {
         alert("Artwork added successfully");
-        setNewArtwork({ title: "", creator: "", image_url: "", metadata_info: "", department: "African Art", curators_insight: "" });
+        setNewArtwork({ title: "", creator: "", image_url: "", metadata_info: "", department: "African Art", curators_insight: "", alt_text: "" });
         fetchArtworks();
       } else if (res.status === 401) {
         alert("Session expired. Please log in again.");
@@ -724,7 +724,11 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Image URL</label>
-                    <input type="text" placeholder="https://..." value={newArtwork.image_url} onChange={e => setNewArtwork({ ...newArtwork, image_url: e.target.value })} className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm" />
+                    <input type="text" placeholder="https://..." value={newArtwork.image_url} onChange={e => setNewArtwork({ ...newArtwork, image_url: e.target.value })} className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm mb-6" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Alt Text (Accessibility)</label>
+                    <input type="text" placeholder="Descriptive text for screen readers" value={newArtwork.alt_text || ""} onChange={e => setNewArtwork({ ...newArtwork, alt_text: e.target.value })} className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm" />
                   </div>
                   <button type="submit" className="w-full bg-black text-white py-4 rounded-none font-bold uppercase tracking-[0.3em] text-[10px] hover:bg-gray-900 transition-all shadow-lg mt-4">
                     Add to Collection
@@ -1266,7 +1270,17 @@ export default function Dashboard() {
                       type="text"
                       value={editingItem.image_url}
                       onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black mb-4"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Alt Text (Accessibility)</label>
+                    <input
+                      type="text"
+                      value={editingItem.alt_text || ""}
+                      onChange={(e) => setEditingItem({ ...editingItem, alt_text: e.target.value })}
                       className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
+                      placeholder="Descriptive text for screen readers"
                     />
                   </div>
                 </>

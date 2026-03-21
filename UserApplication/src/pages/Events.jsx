@@ -92,10 +92,10 @@ function Events() {
             <div className="w-24 h-1 bg-slate-100" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="flex flex-wrap justify-center gap-8">
             {featuredEvents.length > 0 ? (
               featuredEvents.map((ev, idx) => (
-                <div key={idx} className="group relative h-[450px] overflow-hidden border-2 border-black">
+                <div key={idx} className="group relative h-[450px] w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-2rem)] max-w-[400px] overflow-hidden border-2 border-black">
                   <img src={ev.image_url || featuredArtsImg} alt="" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all flex flex-col items-center justify-center text-center p-8" />
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-8">
@@ -108,7 +108,7 @@ function Events() {
             ) : (
               // Fallback skeleton or static placeholders if no dynamic events
               [1, 2, 3].map(i => (
-                <div key={i} className="animate-pulse bg-slate-50 border-2 border-slate-100 h-[450px]" />
+                <div key={i} className="animate-pulse bg-slate-50 border-2 border-slate-100 h-[450px] w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-2rem)] max-w-[400px]" />
               ))
             )}
           </div>
