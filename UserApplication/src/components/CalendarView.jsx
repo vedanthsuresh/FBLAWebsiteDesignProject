@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom';
 
 function CalendarView({ activeCategory = 'all', isModal = false, onDateSelect }) {
+  const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { addToCart } = useCart();
   const [eventsData, setEventsData] = useState({});
@@ -161,6 +163,8 @@ function CalendarView({ activeCategory = 'all', isModal = false, onDateSelect })
 
   const selectedDayEvents = getEventsForDate(selectedDate).filter(ev => {
     if (activeCategory === 'all') return true;
+    if (activeCategory === 'events') return typeof ev !== 'string';
+    if (activeCategory === 'general') return typeof ev === 'string';
     const meta = getEventMetadata(ev);
     return meta.category === activeCategory;
   });
@@ -241,19 +245,27 @@ function CalendarView({ activeCategory = 'all', isModal = false, onDateSelect })
             const prevMonthDays = prevMonthDate.getDate();
             const day = prevMonthDays - firstDay + i + 1;
             const thisDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, day);
+            const todayObj = new Date();
+            todayObj.setHours(0, 0, 0, 0);
+            const isPast = thisDate < todayObj;
             const dayEvents = getEventsForDate(thisDate);
             const isSelected = selectedDate.toDateString() === thisDate.toDateString();
 
             return (
               <div
                 key={`prev-${day}`}
-                onClick={() => handleDayClick(thisDate)}
-                className={`min-h-[70px] md:min-h-[100px] p-3 md:p-4 transition-all cursor-pointer relative flex flex-col ${isSelected
-                  ? 'bg-gray-100 ring-4 ring-inset ring-black z-10'
-                  : 'bg-white text-gray-300 hover:bg-gray-50'
+                onClick={() => (!isPast || !isModal) && handleDayClick(thisDate)}
+                className={`min-h-[70px] md:min-h-[100px] p-3 md:p-4 transition-all relative flex flex-col ${
+                  isPast && isModal
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-60'
+                    : isPast
+                      ? 'bg-gray-100 text-gray-400 opacity-60 cursor-pointer hover:bg-gray-50'
+                      : isSelected
+                        ? 'bg-gray-100 ring-4 ring-inset ring-black z-10 cursor-pointer'
+                        : 'bg-white text-gray-300 hover:bg-gray-50 cursor-pointer'
                   }`}
               >
-                <span className="text-sm font-bold opacity-30">{day}</span>
+                <span className={`text-sm opacity-30 ${isPast ? 'font-normal' : 'font-bold'}`}>{day}</span>
                 {dayEvents.length > 0 && (
                   <div className="mt-auto opacity-20 grayscale">
                     {renderIndicators(dayEvents.filter(ev => {
@@ -271,6 +283,10 @@ function CalendarView({ activeCategory = 'all', isModal = false, onDateSelect })
           {[...Array(days)].map((_, i) => {
             const day = i + 1;
             const thisDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+            const todayObj = new Date();
+            todayObj.setHours(0, 0, 0, 0);
+            const isPast = thisDate < todayObj;
+            
             const dayEvents = getEventsForDate(thisDate);
             const isToday = new Date().toDateString() === thisDate.toDateString();
             const isSelected = selectedDate.toDateString() === thisDate.toDateString();
@@ -278,14 +294,26 @@ function CalendarView({ activeCategory = 'all', isModal = false, onDateSelect })
             return (
               <div
                 key={day}
-                onClick={() => handleDayClick(thisDate)}
-                className={`min-h-[70px] md:min-h-[100px] p-3 md:p-4 transition-all cursor-pointer group relative flex flex-col ${isSelected
-                  ? 'bg-gray-50 ring-4 ring-inset ring-black z-10'
-                  : 'bg-white hover:bg-gray-50'
+                onClick={() => (!isPast || !isModal) && handleDayClick(thisDate)}
+                className={`min-h-[70px] md:min-h-[100px] p-3 md:p-4 transition-all group relative flex flex-col ${
+                  isPast && isModal
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-60'
+                    : isPast
+                      ? 'bg-gray-100 text-gray-400 opacity-60 cursor-pointer hover:bg-gray-50'
+                      : isSelected
+                        ? 'bg-gray-50 ring-4 ring-inset ring-black z-10 cursor-pointer'
+                        : 'bg-white hover:bg-gray-50 cursor-pointer'
                   }`}
               >
                 <div className="flex justify-between items-start">
-                  <span className={`text-lg font-black transition-all ${isSelected ? 'text-black' : isToday ? 'underline decoration-4 underline-offset-4' : 'text-black'
+                  <span className={`text-lg transition-all ${
+                    isPast 
+                      ? 'font-bold opacity-50' 
+                      : isSelected 
+                        ? 'font-black text-black' 
+                        : isToday 
+                          ? 'font-black text-black underline decoration-4 underline-offset-4' 
+                          : 'font-black text-black'
                     }`}>
                     {day}
                   </span>
@@ -343,18 +371,28 @@ function CalendarView({ activeCategory = 'all', isModal = false, onDateSelect })
                 <h3 className="text-3xl md:text-4xl unna-bold text-black mb-4 leading-tight">
                   {typeof selectedEvent === 'string' ? selectedEvent : selectedEvent.title}
                 </h3>
+                {typeof selectedEvent !== 'string' && selectedEvent.time && (
+                  <p className="text-sm font-black uppercase tracking-widest text-slate-500 mb-4">{selectedEvent.time}</p>
+                )}
                 <p className="unna text-base md:text-lg text-slate-700 leading-relaxed">
                   {getEventMetadata(selectedEvent).description}
                 </p>
-                <div className="mt-8 flex items-center justify-between border-t-2 border-black pt-6">
-                  <span className="unna text-3xl font-black">${(typeof selectedEvent === 'string' ? 15.0 : selectedEvent.price) || 0}</span>
-                  <button 
-                    onClick={() => addToCart(typeof selectedEvent === 'string' ? { title: selectedEvent, description: t('calendar.ga_desc'), price: 15.0 } : selectedEvent)}
-                    className="px-8 py-4 bg-black text-white unna-bold text-lg hover:bg-white hover:text-black border-2 border-black transition-all"
-                  >
-                    {t('events.add_to_cart', 'Add to Cart')}
-                  </button>
-                </div>
+                {!isModal && (
+                  <div className="mt-8 flex items-center justify-end border-t-2 border-black pt-6">
+                    <button 
+                      onClick={() => {
+                        if (typeof selectedEvent === 'string') {
+                          navigate('/tickets');
+                        } else {
+                          navigate('/event-booking');
+                        }
+                      }}
+                      className="px-8 py-4 bg-black text-white unna-bold text-lg hover:bg-white hover:text-black border-2 border-black transition-all"
+                    >
+                      {typeof selectedEvent === 'string' ? 'Tickets' : 'Book Event'}
+                    </button>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
@@ -389,6 +427,11 @@ function CalendarView({ activeCategory = 'all', isModal = false, onDateSelect })
                       <span className="text-xl md:text-2xl unna-bold leading-tight group-hover:underline">
                         {title}
                       </span>
+                      {typeof ev !== 'string' && ev.time && (
+                        <span className="text-xs font-black text-gray-500 tracking-widest uppercase mr-auto ml-2">
+                          {ev.time}
+                        </span>
+                      )}
                       <span className="text-black opacity-0 group-hover:opacity-100 transition-opacity text-lg">
                         →
                       </span>
@@ -415,15 +458,15 @@ function CalendarView({ activeCategory = 'all', isModal = false, onDateSelect })
         {isModal && onDateSelect && (
           <div className="mt-8 border-t-4 border-black pt-8">
             <button
-              onClick={() => onDateSelect(selectedDate)}
-              disabled={isHoliday || !selectedDayEvents.includes(t('calendar.general_admission'))}
+              onClick={() => onDateSelect(selectedDate, selectedEvent)}
+              disabled={isHoliday || selectedDayEvents.length === 0 || (activeCategory === 'events' && !selectedEvent)}
               className={`w-full py-4 text-xl unna-bold transition-all shadow-lg ${
-                isHoliday || !selectedDayEvents.includes(t('calendar.general_admission')) 
+                isHoliday || selectedDayEvents.length === 0 || (activeCategory === 'events' && !selectedEvent)
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   : 'bg-black text-white hover:bg-gray-800'
               }`}
             >
-              Confirm Date Selection
+              Confirm Selection
             </button>
           </div>
         )}

@@ -217,6 +217,13 @@ function VisitorInformation() {
               >
                 {t('visitor.purchase_tickets')}
               </Link>
+              <Link
+                to="/event-booking"
+                className="w-full bg-white text-black py-4 unna-bold text-xl hover:bg-slate-100 transition-colors shadow-sm border-2 border-black inline-block text-center mt-3"
+                aria-label="Book Special Events"
+              >
+                Book Special Events
+              </Link>
               <p className="text-[10px] uppercase mt-4 text-center tracking-widest opacity-60">
                 {t('visitor.tickets_desk')}
               </p>

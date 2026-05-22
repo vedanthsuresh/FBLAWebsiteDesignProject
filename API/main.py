@@ -179,6 +179,7 @@ def get_db():
 class EventCreate(BaseModel):
     title: str
     date: date
+    time: Optional[str] = "12:00 PM"
     description: Optional[str] = None
     image_url: Optional[str] = None
     category: Optional[str] = None
@@ -403,6 +404,8 @@ def get_events(db: Session = Depends(get_db)):
         event_data = {
             "title": event.title,
             "description": event.description,
+            "date": event.date.isoformat(),
+            "time": event.time or "12:00 PM",
             "image_url": event.image_url,
             "category": event.category,
             "price": event.price,

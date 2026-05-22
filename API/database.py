@@ -22,6 +22,7 @@ class Event(Base):
     __tablename__ = "events"
     id = Column(Integer, primary_key=True, index=True)
     date = Column(Date, index=True)
+    time = Column(String, default="12:00 PM")
     title = Column(String)
     description = Column(String, nullable=True)
     image_url = Column(String, nullable=True)

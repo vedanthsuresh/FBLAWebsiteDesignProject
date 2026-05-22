@@ -7,6 +7,7 @@ import Events from './Events'
 import FeaturedArts from './FeaturedArts'
 import VisitorInformation from './VisitorInformation'
 import Tickets from './Tickets'
+import EventBooking from './EventBooking'
 import Membership from './Membership'
 import Newsletter from './Newsletter'
 import Citations from './Citations'
@@ -32,6 +33,7 @@ function App() {
               <Route path="/featuredArts" element={<FeaturedArts />} />
               <Route path="/visitorInformation" element={<VisitorInformation />} />
               <Route path="/tickets" element={<Tickets />} />
+              <Route path="/event-booking" element={<EventBooking />} />
               <Route path="/membership" element={<Membership />} />
               <Route path="/newsletter" element={<Newsletter />} />
               <Route path="/citations" element={<Citations />} />

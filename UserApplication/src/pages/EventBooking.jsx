@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 import CalendarView from '../components/CalendarView';
 import { useCart } from '../context/CartContext';
 
-function Tickets() {
+function EventBooking() {
   const { t } = useTranslation();
   const { addToCart } = useCart();
 
@@ -16,12 +16,10 @@ function Tickets() {
     { id: 'senior', label: t('tickets.types.senior'), price: 14.50 },
     { id: 'member', label: t('tickets.types.member'), price: 0 }
   ];
-
-  const TIME_SLOTS = ["10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM"];
-
   const [quantities, setQuantities] = useState({ adult: 0, student: 0, senior: 0, member: 0 });
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
+  const [eventTitle, setEventTitle] = useState('');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const total = Object.entries(quantities).reduce((acc, [id, qty]) => {
@@ -42,7 +40,7 @@ function Tickets() {
         const type = TICKET_TYPES.find(t => t.id === id);
         for(let i=0; i<qty; i++) {
           addToCart({
-            title: `Museum Admission - ${type.label}`,
+            title: `${eventTitle || 'Special Event'} - ${type.label}`,
             description: `Date: ${selectedDate} | Entry: ${selectedTime}`,
             price: type.price
           });
@@ -54,9 +52,10 @@ function Tickets() {
     setQuantities({ adult: 0, student: 0, senior: 0, member: 0 });
     setSelectedDate('');
     setSelectedTime('');
+    setEventTitle('');
   };
 
-  const isStep1Valid = Object.values(quantities).some(qty => qty > 0) && selectedDate !== '' && selectedTime !== '';
+  const isStep1Valid = Object.values(quantities).some(qty => qty > 0) && selectedDate !== '';
 
   return (
     <div className="bg-slate-50 min-h-screen pt-24 relative">
@@ -81,9 +80,15 @@ function Tickets() {
                 <X size={24} />
               </button>
               <div className="-mt-14">
-                <CalendarView isModal={true} activeCategory="general" onDateSelect={(date) => {
-                  const dStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                <CalendarView isModal={true} activeCategory="events" onDateSelect={(dateStr, eventObj) => {
+                  const dStr = `${dateStr.getFullYear()}-${String(dateStr.getMonth() + 1).padStart(2, '0')}-${String(dateStr.getDate()).padStart(2, '0')}`;
                   setSelectedDate(dStr);
+                  if (eventObj) {
+                    const title = typeof eventObj === 'string' ? eventObj : eventObj.title;
+                    const time = typeof eventObj === 'string' ? '10:00 AM' : (eventObj.time || '10:00 AM');
+                    setEventTitle(title);
+                    setSelectedTime(time);
+                  }
                   setIsCalendarOpen(false);
                 }} />
               </div>
@@ -100,7 +105,7 @@ function Tickets() {
               exit={{ opacity: 0, x: -20 }}
               className="bg-white border-4 border-black p-8 md:p-12 shadow-[16px_16px_0px_0px_rgba(0,0,0,1)]"
             >
-              <h2 className="unna-bold text-4xl mb-8 border-b-4 border-black pb-4">{t('tickets.title')}</h2>
+              <h2 className="unna-bold text-4xl mb-8 border-b-4 border-black pb-4">Book Special Event</h2>
               <div className="space-y-6 mb-12">
                 {/* Date & Time Selection */}
                 <div className="bg-slate-50 border-2 border-slate-100 p-6 space-y-6">
@@ -119,50 +124,10 @@ function Tickets() {
                   </div>
                   <div>
                     <label className="text-xs font-black uppercase tracking-widest flex items-center gap-2 mb-3">
-                      <Clock size={16} /> Select Entry Time
+                      <Clock size={16} /> Entry Time
                     </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {TIME_SLOTS.map(time => {
-                        let isPastTime = false;
-                        if (selectedDate) {
-                          // Note: selectedDate from calendar is expected to be 'YYYY-MM-DD'
-                          // To avoid timezone issues when parsing 'YYYY-MM-DD', extract components
-                          const [y, m, d] = selectedDate.split('-');
-                          const selDateObj = new Date(y, m - 1, d);
-                          const now = new Date();
-                          const isToday = now.toDateString() === selDateObj.toDateString();
-
-                          if (isToday) {
-                            const [timeStr, modifier] = time.split(' ');
-                            let [hours, minutes] = timeStr.split(':');
-                            hours = parseInt(hours, 10);
-                            if (modifier === 'PM' && hours !== 12) hours += 12;
-                            if (modifier === 'AM' && hours === 12) hours = 0;
-                            
-                            const slotDate = new Date();
-                            slotDate.setHours(hours, parseInt(minutes, 10), 0, 0);
-                            isPastTime = slotDate < now;
-                          }
-                        }
-
-                        return (
-                          <button
-                            key={time}
-                            type="button"
-                            onClick={() => !isPastTime && setSelectedTime(time)}
-                            disabled={isPastTime}
-                            className={`py-3 px-2 border-2 transition-all font-bold tracking-widest text-xs uppercase ${
-                              isPastTime
-                                ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed opacity-50'
-                                : selectedTime === time
-                                  ? 'bg-black text-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]'
-                                  : 'bg-white border-slate-200 text-slate-500 hover:border-black hover:text-black'
-                            }`}
-                          >
-                            {time}
-                          </button>
-                        );
-                      })}
+                    <div className="py-3 px-4 border-2 bg-slate-100 text-black font-bold tracking-widest text-lg uppercase border-slate-200">
+                      {selectedTime || "Select an Event"}
                     </div>
                   </div>
                 </div>
@@ -221,4 +186,4 @@ function Tickets() {
   );
 }
 
-export default Tickets;
+export default EventBooking;

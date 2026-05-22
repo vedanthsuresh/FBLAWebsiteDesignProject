@@ -15,7 +15,7 @@ export default function Dashboard() {
   const role = localStorage.getItem("admin_role");
   const token = localStorage.getItem("admin_token");
 
-  const [newEvent, setNewEvent] = useState({ title: "", date: "", description: "", image_url: "", category: "exhibition", recurrence: "none" });
+  const [newEvent, setNewEvent] = useState({ title: "", date: "", time: "12:00 PM", description: "", image_url: "", category: "exhibition", recurrence: "none" });
   const [newHoliday, setNewHoliday] = useState({ name: "", date: "" });
   const [newArtwork, setNewArtwork] = useState({ title: "", creator: "", image_url: "", metadata_info: "", department: "African Art", curators_insight: "", alt_text: "" });
 
@@ -131,7 +131,7 @@ export default function Dashboard() {
       });
       if (res.ok) {
         alert("Event created successfully");
-        setNewEvent({ title: "", date: "", description: "", image_url: "", category: "exhibition", recurrence: "none" });
+        setNewEvent({ title: "", date: "", time: "12:00 PM", description: "", image_url: "", category: "exhibition", recurrence: "none" });
         fetchEvents();
       } else if (res.status === 401) {
         alert("Session expired. Please log in again.");
@@ -538,6 +538,16 @@ export default function Dashboard() {
                     />
                   </div>
                   <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Time</label>
+                    <input
+                      type="text"
+                      value={newEvent.time}
+                      onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm"
+                      placeholder="e.g. 10:00 AM"
+                    />
+                  </div>
+                  <div>
                     <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Category</label>
                     <select
                       value={newEvent.category}
@@ -611,7 +621,7 @@ export default function Dashboard() {
                       ) : (
                         events.map((event) => (
                           <tr key={event.id} className="hover:bg-gray-50 transition-all border-b border-gray-50 last:border-none">
-                            <td className="px-4 py-6 text-gray-400 font-mono text-[10px]">{event.date}</td>
+                            <td className="px-4 py-6 text-gray-400 font-mono text-[10px]">{event.date} {event.time}</td>
                             <td className="px-4 py-6 font-bold text-black uppercase tracking-tighter text-sm flex items-center gap-2">
                               {event.title}
                               {event.recurrence && event.recurrence !== 'none' && (
@@ -1105,6 +1115,16 @@ export default function Dashboard() {
                       onChange={(e) => setEditingItem({ ...editingItem, date: e.target.value })}
                       className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
                       required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Time</label>
+                    <input
+                      type="text"
+                      value={editingItem.time}
+                      onChange={(e) => setEditingItem({ ...editingItem, time: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-black"
+                      placeholder="e.g. 12:00 PM"
                     />
                   </div>
                   <div>
