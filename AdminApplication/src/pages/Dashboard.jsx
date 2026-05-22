@@ -58,7 +58,7 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${API_URL}/admin/events`);
       const data = await res.json();
-      setEvents(data);
+      if (Array.isArray(data)) setEvents(data);
     } catch (error) {
       console.error("Error fetching events:", error);
     }
@@ -68,7 +68,7 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${API_URL}/admin/holidays`);
       const data = await res.json();
-      setHolidays(data);
+      if (Array.isArray(data)) setHolidays(data);
     } catch (error) {
       console.error("Error fetching holidays:", error);
     }
@@ -78,7 +78,7 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${API_URL}/admin/artworks`);
       const data = await res.json();
-      setArtworks(data);
+      if (Array.isArray(data)) setArtworks(data);
     } catch (error) {
       console.error("Error fetching artworks:", error);
     }
@@ -89,8 +89,12 @@ export default function Dashboard() {
       const res = await fetch(`${API_URL}/admin/newsletters?t=${Date.now()}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
+      if (res.status === 401) {
+        handleLogout();
+        return;
+      }
       const data = await res.json();
-      setNewsletters(data);
+      if (Array.isArray(data)) setNewsletters(data);
     } catch (error) {
       console.error("Error fetching newsletters:", error);
     }
@@ -102,8 +106,12 @@ export default function Dashboard() {
       const res = await fetch(`${API_URL}/admin/users`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
+      if (res.status === 401) {
+        handleLogout();
+        return;
+      }
       const data = await res.json();
-      setUsers(data);
+      if (Array.isArray(data)) setUsers(data);
     } catch (error) {
       console.error("Error fetching users:", error);
     }

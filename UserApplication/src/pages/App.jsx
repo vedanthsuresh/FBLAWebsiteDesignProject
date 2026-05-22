@@ -13,30 +13,35 @@ import Citations from './Citations'
 import ChatBot from '../components/Chatbot'
 import { AuthProvider } from '../context/AuthContext'
 import Login from './Login'
+import { CartProvider } from '../context/CartContext'
+import CartSidebar from '../components/CartSidebar'
 
 function App() {
   return (
     <AuthProvider>
-      <div>
-        <ScrollToTop />
+      <CartProvider>
+        <div>
+          <ScrollToTop />
 
-      <Navigation />
+          <Navigation />
 
-      <div id="scroll-container" className="h-screen overflow-y-scroll bg-white">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="/featuredArts" element={<FeaturedArts />} />
-          <Route path="/visitorInformation" element={<VisitorInformation />} />
-          <Route path="/tickets" element={<Tickets />} />
-          <Route path="/membership" element={<Membership />} />
-          <Route path="/newsletter" element={<Newsletter />} />
-          <Route path="/citations" element={<Citations />} />
-          <Route path="/login" element={<Login />} />
-        </Routes>
-        <ChatBot />
-      </div>
-    </div>
+          <div id="scroll-container" className="h-screen overflow-y-scroll bg-white">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/featuredArts" element={<FeaturedArts />} />
+              <Route path="/visitorInformation" element={<VisitorInformation />} />
+              <Route path="/tickets" element={<Tickets />} />
+              <Route path="/membership" element={<Membership />} />
+              <Route path="/newsletter" element={<Newsletter />} />
+              <Route path="/citations" element={<Citations />} />
+              <Route path="/login" element={<Login />} />
+            </Routes>
+            <ChatBot />
+          </div>
+          <CartSidebar />
+        </div>
+      </CartProvider>
     </AuthProvider>
   )
 }

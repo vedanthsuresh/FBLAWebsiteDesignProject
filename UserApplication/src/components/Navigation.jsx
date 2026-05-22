@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Globe, User, LogOut } from 'lucide-react';
+import { Globe, User, LogOut, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 
 function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t, i18n } = useTranslation();
   const { isAuthenticated, logout } = useAuth();
+  const { cart, toggleCart } = useCart();
   const navigate = useNavigate();
 
   const changeLanguage = (lng) => {
@@ -61,6 +63,13 @@ function Navigation() {
             <button onClick={() => changeLanguage('es')} className={`unna text-xl ${i18n.language === 'es' ? 'font-bold underline' : 'opacity-50'}`}>ES</button>
             <button onClick={() => changeLanguage('fr')} className={`unna text-xl ${i18n.language === 'fr' ? 'font-bold underline' : 'opacity-50'}`}>FR</button>
           </div>
+
+          <button 
+            onClick={() => { toggleCart(); setIsMenuOpen(false); }}
+            className="flex items-center gap-3 text-3xl text-black hover:text-slate-500 unna-bold pt-8"
+          >
+            <ShoppingBag size={25} /> {t('nav.cart', 'Cart')} ({cart.length})
+          </button>
         </div>
       </div>
 
@@ -125,6 +134,19 @@ function Navigation() {
                 </Link>
               )}
             </div>
+
+            <button 
+              onClick={toggleCart}
+              className="relative p-2 text-black hover:text-slate-500 transition-colors ml-4 border-l border-slate-200 pl-4"
+              aria-label="Toggle Cart"
+            >
+              <ShoppingBag size={20} />
+              {cart.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">
+                  {cart.length}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </nav>

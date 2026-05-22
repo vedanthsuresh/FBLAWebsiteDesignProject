@@ -6,3 +6,4 @@ bcrypt
 apscheduler
 uvicorn
 python-multipart
+python-dotenv

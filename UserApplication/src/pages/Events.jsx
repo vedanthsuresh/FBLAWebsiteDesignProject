@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useCart } from '../context/CartContext';
 import CalendarView from '../components/CalendarView';
 import featuredArtsImg from '../assets/images/featured-arts-img.png';
 import artEventImg from '../assets/images/art-event.png';
@@ -10,6 +11,7 @@ import museumImg from '../assets/images/museum-img.png';
 
 function Events() {
   const { t } = useTranslation();
+  const { addToCart } = useCart();
   const [activeCategory, setActiveCategory] = useState('all');
   const [featuredEvents, setFeaturedEvents] = useState([]);
 
@@ -101,7 +103,13 @@ function Events() {
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-8">
                     <span className="text-[10px] font-black uppercase tracking-widest bg-black px-2 py-1 mb-4">{getBadgeForEvent(ev)}</span>
                     <h3 className="unna-bold text-3xl mb-4">{ev.title}</h3>
-                    <p className="text-sm opacity-80 max-w-xs mx-auto line-clamp-3">{ev.description}</p>
+                    <p className="text-sm opacity-80 max-w-xs mx-auto line-clamp-3 mb-6">{ev.description}</p>
+                    <button 
+                      onClick={() => addToCart(ev)}
+                      className="px-6 py-2 bg-white text-black unna-bold text-sm tracking-widest hover:bg-black hover:text-white transition-all border border-black uppercase"
+                    >
+                      {t('events.add_to_cart', 'Add to Cart')} — ${ev.price || 0}
+                    </button>
                   </div>
                 </div>
               ))

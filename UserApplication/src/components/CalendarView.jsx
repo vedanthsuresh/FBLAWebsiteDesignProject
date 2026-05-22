@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useCart } from '../context/CartContext';
 
-function CalendarView({ activeCategory = 'all' }) {
+function CalendarView({ activeCategory = 'all', isModal = false, onDateSelect }) {
   const { t, i18n } = useTranslation();
+  const { addToCart } = useCart();
   const [eventsData, setEventsData] = useState({});
   const [holidays, setHolidays] = useState({});
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -146,6 +148,8 @@ function CalendarView({ activeCategory = 'all' }) {
     if (window.innerWidth < 1024) {
       document.getElementById('daily-events-panel')?.scrollIntoView({ behavior: 'smooth' });
     }
+    // If it's not a modal, we just show events in the panel. 
+    // If it is a modal, the user might want to confirm the selection inside the panel.
   };
 
   const handleEventClick = (event) => {
@@ -342,9 +346,15 @@ function CalendarView({ activeCategory = 'all' }) {
                 <p className="unna text-base md:text-lg text-slate-700 leading-relaxed">
                   {getEventMetadata(selectedEvent).description}
                 </p>
-                <button className="mt-8 w-full py-4 bg-black text-white unna-bold text-lg hover:bg-white hover:text-black border-2 border-black transition-all">
-                  Book This Event
-                </button>
+                <div className="mt-8 flex items-center justify-between border-t-2 border-black pt-6">
+                  <span className="unna text-3xl font-black">${(typeof selectedEvent === 'string' ? 15.0 : selectedEvent.price) || 0}</span>
+                  <button 
+                    onClick={() => addToCart(typeof selectedEvent === 'string' ? { title: selectedEvent, description: t('calendar.ga_desc'), price: 15.0 } : selectedEvent)}
+                    className="px-8 py-4 bg-black text-white unna-bold text-lg hover:bg-white hover:text-black border-2 border-black transition-all"
+                  >
+                    {t('events.add_to_cart', 'Add to Cart')}
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -400,6 +410,23 @@ function CalendarView({ activeCategory = 'all' }) {
                 ? t('calendar.typically_closed') : t('calendar.open_today')}
           </p>
         </div>
+
+        {/* Modal Selection Confirmation */}
+        {isModal && onDateSelect && (
+          <div className="mt-8 border-t-4 border-black pt-8">
+            <button
+              onClick={() => onDateSelect(selectedDate)}
+              disabled={isHoliday || !selectedDayEvents.includes(t('calendar.general_admission'))}
+              className={`w-full py-4 text-xl unna-bold transition-all shadow-lg ${
+                isHoliday || !selectedDayEvents.includes(t('calendar.general_admission')) 
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-black text-white hover:bg-gray-800'
+              }`}
+            >
+              Confirm Date Selection
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

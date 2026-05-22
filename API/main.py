@@ -10,6 +10,22 @@ from typing import Optional, List
 from jose import JWTError, jwt # type: ignore
 import bcrypt # type: ignore
 from apscheduler.schedulers.background import BackgroundScheduler # type: ignore
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# --- SMTP Config ---
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+MAIL_FROM = os.getenv("MAIL_FROM", "High Museum <noreply@highmuseum.org>")
 
 # Create tables if they don't exist
 Base.metadata.create_all(bind=engine)
@@ -17,7 +33,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 # Security config
-SECRET_KEY = "h1gh-mu5eum-s3cr3t-k3y" # In a real app, use environment variables
+SECRET_KEY = os.getenv("SECRET_KEY", "h1gh-mu5eum-s3cr3t-k3y")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -75,9 +91,30 @@ scheduler = BackgroundScheduler()
 # Schedule for the 1st day of every month at 9:00 AM
 scheduler.add_job(send_monthly_newsletter_task, 'cron', day=1, hour=9, minute=0)
 
+def send_real_email(recipient: str, subject: str, body: str):
+    """Helper to send a real email using SMTP."""
+    if not SMTP_USER or not SMTP_PASSWORD:
+        print("SMTP credentials not configured. Skipping real email send.")
+        return False
+        
+    msg = MIMEMultipart()
+    msg['From'] = MAIL_FROM
+    msg['To'] = recipient
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+    
+    try:
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, context=context) as server:
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.send_message(msg)
+        return True
+    except Exception as e:
+        print(f"SMTP Error: {e}")
+        return False
+
 def process_email_queue_task():
     """Background task to send queued emails with retry logic for slow connections."""
-    print(f"[{datetime.now()}] Email Queue Processing Started...")
     db = SessionLocal()
     try:
         # Get pending or failed emails that haven't reached max retries
@@ -87,23 +124,27 @@ def process_email_queue_task():
         ).all()
 
         if not queued_emails:
-            print("No emails in queue.")
             return
+
+        print(f"[{datetime.now()}] Processing {len(queued_emails)} queued emails...")
 
         for email in queued_emails:
             try:
-                print(f"Attempting to send email to: {email.recipient} (Subject: {email.subject})")
+                print(f"Attempting to send email to: {email.recipient}")
                 
-                # SIMULATION: In a real app, use smtplib or an API here.
-                # If network is slow/unstable, this would raise an exception.
-                # For this project, we simulate success unless the logic is changed.
+                success = send_real_email(email.recipient, email.subject, email.body)
                 
-                email.status = "sent"
-                email.sent_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                print(f"Successfully sent email to {email.recipient}")
+                if success:
+                    email.status = "sent"
+                    email.sent_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    print(f"Successfully sent email to {email.recipient}")
+                else:
+                    print(f"Failed to send email to {email.recipient} (SMTP failure)")
+                    email.status = "failed"
+                    email.retry_count += 1
                 
             except Exception as send_error:
-                print(f"Failed to send email to {email.recipient}: {send_error}")
+                print(f"Critical error sending email to {email.recipient}: {send_error}")
                 email.status = "failed"
                 email.retry_count += 1
             
@@ -141,6 +182,7 @@ class EventCreate(BaseModel):
     description: Optional[str] = None
     image_url: Optional[str] = None
     category: Optional[str] = None
+    price: Optional[int] = 0
     recurrence: Optional[str] = "none"
 
 class EventExceptionCreate(BaseModel):
@@ -178,6 +220,16 @@ class EmailCreate(BaseModel):
     recipient: str
     subject: str
     body: str
+
+class PurchaseItem(BaseModel):
+    title: str
+    price: float
+    description: Optional[str] = None
+
+class PurchaseRequest(BaseModel):
+    email: str
+    items: List[PurchaseItem]
+    total: float
 
 class ArtworkCreate(BaseModel):
     title: str
@@ -353,6 +405,7 @@ def get_events(db: Session = Depends(get_db)):
             "description": event.description,
             "image_url": event.image_url,
             "category": event.category,
+            "price": event.price,
             "recurrence": event.recurrence,
             "exception_dates": exceptions_by_event.get(event.id, [])
         }
@@ -375,6 +428,7 @@ def get_all_events(db: Session = Depends(get_db)):
         "date": e.date, 
         "title": e.title, 
         "category": e.category, 
+        "price": e.price,
         "description": e.description, 
         "image_url": e.image_url, 
         "recurrence": e.recurrence,
@@ -394,6 +448,7 @@ def create_event(
         description=event.description,
         image_url=event.image_url,
         category=event.category,
+        price=event.price,
         recurrence=event.recurrence
     )
     db.add(db_event)
@@ -430,6 +485,7 @@ def update_event(
     db_event.description = event.description
     db_event.image_url = event.image_url
     db_event.category = event.category
+    db_event.price = event.price
     db_event.recurrence = event.recurrence
     db.commit()
     db.refresh(db_event)
@@ -806,3 +862,35 @@ def queue_email(email: EmailCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_email)
     return {"message": "Email queued for delivery", "queue_id": new_email.id}
+
+@app.post("/api/purchase")
+def purchase(req: PurchaseRequest, db: Session = Depends(get_db)):
+    """Handle a purchase by queuing a confirmation email."""
+    if not req.items:
+        raise HTTPException(status_code=400, detail="Cart is empty")
+    
+    # Create the email body
+    items_list = "\n".join([f"- {item.title}: ${item.price:.2f}" for item in req.items])
+    body = f"""
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+{items_list}
+
+Total Amount: ${req.total:.2f}
+
+We look forward to seeing you at the museum!
+"""
+    
+    new_email = EmailQueue(
+        recipient=req.email,
+        subject="Your High Museum Purchase Confirmation",
+        body=body,
+        created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        status="pending"
+    )
+    db.add(new_email)
+    db.commit()
+    db.refresh(new_email)
+    
+    return {"message": "Purchase successful! Confirmation email queued.", "order_id": new_email.id}

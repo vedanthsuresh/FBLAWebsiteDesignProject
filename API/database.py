@@ -26,6 +26,7 @@ class Event(Base):
     description = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
     category = Column(String, nullable=True)
+    price = Column(Integer, nullable=True, default=0)
     recurrence = Column(String, nullable=True, default="none")
 
 class EventException(Base):

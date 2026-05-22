@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MessageCircle, X, Send } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 import './ChatBot.css';
 
 const ChatBot = () => {
@@ -9,6 +10,7 @@ const ChatBot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { isCartOpen } = useCart();
   const messagesEndRef = useRef(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -228,7 +230,7 @@ Answer questions about the museum, its collections, visiting information, exhibi
   return (
     <>
       {/* Floating Chat Button */}
-      {!isOpen && (
+      {!isOpen && !isCartOpen && (
         <button
           className="chatbot-toggle"
           onClick={() => setIsOpen(true)}
@@ -239,7 +241,7 @@ Answer questions about the museum, its collections, visiting information, exhibi
       )}
 
       {/* Chat Window */}
-      {isOpen && (
+      {isOpen && !isCartOpen && (
         <div className="chatbot-window">
           {/* Header */}
           <div className="chatbot-header">

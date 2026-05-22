@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Ticket, User, Mail, CheckCircle, ChevronRight, ChevronLeft, CreditCard, AlertCircle } from 'lucide-react';
+import { Ticket, User, Mail, CheckCircle, ChevronRight, ChevronLeft, CreditCard, AlertCircle, Calendar as CalendarIcon, Clock, X } from 'lucide-react';
 import Footer from '../components/Footer';
+import CalendarView from '../components/CalendarView';
 
 function Tickets() {
   const { t } = useTranslation();
@@ -15,7 +16,12 @@ function Tickets() {
     { id: 'member', label: t('tickets.types.member'), price: 0 }
   ];
 
+  const TIME_SLOTS = ["10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM"];
+
   const [quantities, setQuantities] = useState({ adult: 0, student: 0, senior: 0, member: 0 });
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailError, setEmailError] = useState(null);
@@ -64,6 +70,8 @@ function Tickets() {
           "Message": `Hello, ${formData.name}! Here is your order: ${orderId}`,
           "Name": formData.name,
           "Order ID": orderId,
+          "Date": selectedDate,
+          "Time Slot": selectedTime,
           "Tickets": selectedTickets,
           "Total Amount": `$${total.toFixed(2)}`,
           "_template": "table",
@@ -84,11 +92,43 @@ function Tickets() {
     }
   };
 
-  const isStep1Valid = Object.values(quantities).some(qty => qty > 0);
+  const isStep1Valid = Object.values(quantities).some(qty => qty > 0) && selectedDate !== '' && selectedTime !== '';
   const isStep2Valid = formData.name && formData.email.includes('@');
 
   return (
-    <div className="bg-slate-50 min-h-screen pt-24">
+    <div className="bg-slate-50 min-h-screen pt-24 relative">
+      <AnimatePresence>
+        {isCalendarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-7xl max-h-[90vh] overflow-y-auto bg-white shadow-2xl border-4 border-black my-8"
+            >
+              <button 
+                onClick={() => setIsCalendarOpen(false)}
+                className="sticky top-4 right-4 ml-auto z-10 w-10 h-10 bg-black text-white flex items-center justify-center hover:bg-gray-800 transition-colors"
+              >
+                <X size={24} />
+              </button>
+              <div className="-mt-14">
+                <CalendarView isModal={true} onDateSelect={(date) => {
+                  const dStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                  setSelectedDate(dStr);
+                  setIsCalendarOpen(false);
+                }} />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="max-w-4xl mx-auto px-4 py-12">
 
         {/* Progress Bar */}
@@ -121,6 +161,44 @@ function Tickets() {
             >
               <h2 className="unna-bold text-4xl mb-8 border-b-4 border-black pb-4">{t('tickets.title')}</h2>
               <div className="space-y-6 mb-12">
+                {/* Date & Time Selection */}
+                <div className="bg-slate-50 border-2 border-slate-100 p-6 space-y-6">
+                  <div>
+                    <label className="text-xs font-black uppercase tracking-widest flex items-center gap-2 mb-3">
+                      <CalendarIcon size={16} /> Select Date
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsCalendarOpen(true)}
+                      className="w-full md:w-1/2 px-4 py-3 border-2 border-slate-200 outline-none hover:border-black transition-colors unna text-xl text-left bg-white text-black flex justify-between items-center"
+                    >
+                      {selectedDate || "Select a Calendar Date"}
+                      <ChevronRight size={20} className="opacity-50" />
+                    </button>
+                  </div>
+                  <div>
+                    <label className="text-xs font-black uppercase tracking-widest flex items-center gap-2 mb-3">
+                      <Clock size={16} /> Select Entry Time
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {TIME_SLOTS.map(time => (
+                        <button
+                          key={time}
+                          type="button"
+                          onClick={() => setSelectedTime(time)}
+                          className={`py-3 px-2 border-2 transition-all font-bold tracking-widest text-xs uppercase ${
+                            selectedTime === time
+                              ? 'bg-black text-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]'
+                              : 'bg-white border-slate-200 text-slate-500 hover:border-black hover:text-black'
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 {TICKET_TYPES.map((type) => (
                   <div key={type.id} className="flex items-center justify-between p-4 bg-slate-50 border-2 border-slate-100 group hover:border-black transition-colors">
                     <div>
@@ -220,6 +298,7 @@ function Tickets() {
                 <div className="p-6 bg-slate-50 border-l-8 border-black space-y-2">
                   <p className="text-sm font-black uppercase tracking-tight">{t('tickets.order_summary')}</p>
                   <div className="unna text-lg opacity-60">
+                    <p className="mb-2 italic text-sm"><span className="font-bold">Date:</span> {selectedDate} at {selectedTime}</p>
                     {Object.entries(quantities).map(([id, qty]) => qty > 0 && (
                       <div key={id} className="flex justify-between">
                         <span>{TICKET_TYPES.find(t => t.id === id).label} x {qty}</span>
@@ -272,6 +351,7 @@ function Tickets() {
               <div className="bg-slate-50 p-8 border-2 border-dashed border-slate-200 mb-12">
                 <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{t('tickets.order_summary')}</p>
                 <p className="unna text-xl mb-2">{t('tickets.order_id')}: #HMA-{Math.floor(Math.random() * 900000) + 100000}</p>
+                <p className="font-bold uppercase text-[10px] tracking-widest mb-4">Date/Time: <span className="text-slate-500">{selectedDate} @ {selectedTime}</span></p>
                 <div className="flex justify-center gap-4 text-sm font-bold opacity-60">
                   <span className="flex items-center gap-1"><Ticket size={14} /> {Object.values(quantities).reduce((a, b) => a + b, 0)} Tickets</span>
                   <span>|</span>
