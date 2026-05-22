@@ -80,7 +80,7 @@ function EventBooking() {
                 <X size={24} />
               </button>
               <div className="-mt-14">
-                <CalendarView isModal={true} activeCategory="events" onDateSelect={(dateStr, eventObj) => {
+                <CalendarView isModal={true} activeCategory="events" disablePastDates={true} onDateSelect={(dateStr, eventObj) => {
                   const dStr = `${dateStr.getFullYear()}-${String(dateStr.getMonth() + 1).padStart(2, '0')}-${String(dateStr.getDate()).padStart(2, '0')}`;
                   setSelectedDate(dStr);
                   if (eventObj) {

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 
-function CalendarView({ activeCategory = 'all', isModal = false, onDateSelect }) {
+function CalendarView({ activeCategory = 'all', isModal = false, onDateSelect, disablePastDates = false }) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { addToCart } = useCart();
@@ -254,15 +254,13 @@ function CalendarView({ activeCategory = 'all', isModal = false, onDateSelect })
             return (
               <div
                 key={`prev-${day}`}
-                onClick={() => (!isPast || !isModal) && handleDayClick(thisDate)}
+                onClick={() => (!isPast || !disablePastDates) && handleDayClick(thisDate)}
                 className={`min-h-[70px] md:min-h-[100px] p-3 md:p-4 transition-all relative flex flex-col ${
-                  isPast && isModal
+                  isPast && disablePastDates
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-60'
-                    : isPast
-                      ? 'bg-gray-100 text-gray-400 opacity-60 cursor-pointer hover:bg-gray-50'
-                      : isSelected
-                        ? 'bg-gray-100 ring-4 ring-inset ring-black z-10 cursor-pointer'
-                        : 'bg-white text-gray-300 hover:bg-gray-50 cursor-pointer'
+                    : isSelected
+                      ? 'bg-gray-100 ring-4 ring-inset ring-black z-10 cursor-pointer'
+                      : 'bg-white text-gray-300 hover:bg-gray-50 cursor-pointer'
                   }`}
               >
                 <span className={`text-sm opacity-30 ${isPast ? 'font-normal' : 'font-bold'}`}>{day}</span>
@@ -294,20 +292,18 @@ function CalendarView({ activeCategory = 'all', isModal = false, onDateSelect })
             return (
               <div
                 key={day}
-                onClick={() => (!isPast || !isModal) && handleDayClick(thisDate)}
+                onClick={() => (!isPast || !disablePastDates) && handleDayClick(thisDate)}
                 className={`min-h-[70px] md:min-h-[100px] p-3 md:p-4 transition-all group relative flex flex-col ${
-                  isPast && isModal
+                  isPast && disablePastDates
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-60'
-                    : isPast
-                      ? 'bg-gray-100 text-gray-400 opacity-60 cursor-pointer hover:bg-gray-50'
-                      : isSelected
-                        ? 'bg-gray-50 ring-4 ring-inset ring-black z-10 cursor-pointer'
-                        : 'bg-white hover:bg-gray-50 cursor-pointer'
+                    : isSelected
+                      ? 'bg-gray-50 ring-4 ring-inset ring-black z-10 cursor-pointer'
+                      : 'bg-white hover:bg-gray-50 cursor-pointer'
                   }`}
               >
                 <div className="flex justify-between items-start">
                   <span className={`text-lg transition-all ${
-                    isPast 
+                    isPast && disablePastDates
                       ? 'font-bold opacity-50' 
                       : isSelected 
                         ? 'font-black text-black' 

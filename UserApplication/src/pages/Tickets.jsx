@@ -81,7 +81,7 @@ function Tickets() {
                 <X size={24} />
               </button>
               <div className="-mt-14">
-                <CalendarView isModal={true} activeCategory="general" onDateSelect={(date) => {
+                <CalendarView isModal={true} activeCategory="general" disablePastDates={true} onDateSelect={(date) => {
                   const dStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                   setSelectedDate(dStr);
                   setIsCalendarOpen(false);
