@@ -1,0 +1,428 @@
+
+========================================
+TIMESTAMP: 2026-05-24 19:16:01
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+========================================
+
+========================================
+TIMESTAMP: 2026-05-24 19:16:01
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+========================================
+
+========================================
+TIMESTAMP: 2026-05-24 19:16:01
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Senior (65+): $14.50
+
+Total Amount: $14.50
+
+We look forward to seeing you at the museum!
+========================================
+
+========================================
+TIMESTAMP: 2026-05-24 19:16:01
+TO: vedanth.suresh039@gmail.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Adult: $16.50
+
+Total Amount: $16.50
+
+We look forward to seeing you at the museum!
+========================================
+
+========================================
+TIMESTAMP: 2026-05-24 19:17:01
+TO: vedanth.suresh039@gmail.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Adult: $16.50
+
+Total Amount: $16.50
+
+We look forward to seeing you at the museum!
+========================================
+
+========================================
+TIMESTAMP: 2026-05-24 19:19:27
+TO: vedanth.suresh039@gmail.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Adult: $16.50
+
+Total Amount: $16.50
+
+We look forward to seeing you at the museum!
+========================================
+
+========================================
+TIMESTAMP: 2026-05-24 19:54:26
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+========================================
+
+========================================
+TIMESTAMP: 2026-05-24 21:13:01
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-24 21:14:01
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-24 21:15:01
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-24 21:16:01
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 10:38:25
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 10:39:25
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 10:40:25
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 10:41:25
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 10:42:25
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 10:57:26
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 10:57:31
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 10:58:31
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 10:59:02
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 10:59:02
+TO: vedanth.suresh039@gmail.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Adult: $16.50
+
+Total Amount: $16.50
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 10:59:31
+TO: authenticated_user@example.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 11:01:31
+TO: vedanth.suresh039@gmail.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Adult: $16.50
+
+Total Amount: $16.50
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 11:02:31
+TO: vedanth.suresh039@gmail.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 13:25:31
+TO: vedanth.suresh039@gmail.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Adult: $16.50
+
+Total Amount: $16.50
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 13:27:31
+TO: vedanth.suresh039@gmail.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Toddler Thursday - Member: $0.00
+
+Total Amount: $0.00
+
+We look forward to seeing you at the museum!
+
+========================================

@@ -7,13 +7,19 @@ import { useTranslation } from 'react-i18next';
 
 const CartSidebar = () => {
   const { cart, removeFromCart, clearCart, isCartOpen, setIsCartOpen } = useCart();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, email: authEmail } = useAuth();
   const { t } = useTranslation();
   const [expandedItems, setExpandedItems] = useState({});
   const [email, setEmail] = useState('');
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
   const [error, setError] = useState(null);
+
+  React.useEffect(() => {
+    if (isAuthenticated && authEmail) {
+      setEmail(authEmail);
+    }
+  }, [isAuthenticated, authEmail]);
 
   const toggleExpand = (cartId) => {
     setExpandedItems(prev => ({
@@ -42,7 +48,7 @@ const CartSidebar = () => {
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
-          email: email || "authenticated_user@example.com", 
+          email: email || "authenticated_user@example.com",
           items: cart.map(item => ({
             title: item.title,
             price: item.price || 0,
@@ -55,26 +61,6 @@ const CartSidebar = () => {
       const purchaseData = await response.json();
 
       if (response.ok) {
-        // 2. Real Email via FormSubmit.co (mimmicking the user's "EmailJS" pattern)
-        const cartSummary = cart.map(item => `- ${item.title}: $${(item.price || 0).toFixed(2)}`).join('\n');
-        
-        await fetch(`https://formsubmit.co/ajax/${email || "authenticated_user@example.com"}`, {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            "Subject": `Purchase Confirmation: ${purchaseData.order_id}`,
-            "Message": `Thank you for your purchase from the High Museum of Art!`,
-            "Order ID": purchaseData.order_id,
-            "Items": cartSummary,
-            "Total Amount": `$${total.toFixed(2)}`,
-            "_template": "table",
-            "_captcha": "false"
-          })
-        });
-
         setPurchaseSuccess(true);
         clearCart();
         setTimeout(() => {
@@ -123,7 +109,7 @@ const CartSidebar = () => {
                   {cart.length}
                 </span>
               </div>
-              <button 
+              <button
                 onClick={() => setIsCartOpen(false)}
                 className="hover:rotate-90 transition-transform duration-300"
               >
@@ -151,7 +137,7 @@ const CartSidebar = () => {
               ) : (
                 cart.map((item) => (
                   <div key={item.cartId} className="border-2 border-black overflow-hidden bg-slate-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                    <div 
+                    <div
                       className="p-4 flex items-center justify-between cursor-pointer hover:bg-white transition-colors"
                       onClick={() => toggleExpand(item.cartId)}
                     >
@@ -160,7 +146,7 @@ const CartSidebar = () => {
                         <p className="unna text-lg font-bold">${(item.price || 0).toFixed(2)}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             removeFromCart(item.cartId);
@@ -172,7 +158,7 @@ const CartSidebar = () => {
                         {expandedItems[item.cartId] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                       </div>
                     </div>
-                    
+
                     <AnimatePresence>
                       {expandedItems[item.cartId] && (
                         <motion.div
@@ -205,8 +191,8 @@ const CartSidebar = () => {
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('cart.email_label', 'Enter Email for Confirmation')}</label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                      <input 
-                        type="email" 
+                      <input
+                        type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@example.com"
@@ -220,7 +206,7 @@ const CartSidebar = () => {
                   <p className="text-red-500 text-xs font-bold uppercase tracking-tight animate-pulse">{error}</p>
                 )}
 
-                <button 
+                <button
                   onClick={handlePurchase}
                   disabled={isPurchasing}
                   className={`w-full py-5 bg-black text-white unna-bold text-2xl flex items-center justify-center gap-3 hover:bg-white hover:text-black border-4 border-black transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none ${isPurchasing ? 'opacity-50 cursor-not-allowed' : ''}`}

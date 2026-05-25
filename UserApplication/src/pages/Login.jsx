@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { Lock, Mail } from 'lucide-react';
@@ -11,6 +11,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
 
   const handleLogin = async (e) => {
@@ -30,8 +31,9 @@ function Login() {
         throw new Error(data.detail || 'Failed to login');
       }
 
-      login(data.access_token, data.role);
-      navigate('/');
+      login(data.access_token, data.role, email);
+      const destination = location.state?.from || '/';
+      navigate(destination, { state: location.state });
     } catch (err) {
       setError(err.message);
     } finally {

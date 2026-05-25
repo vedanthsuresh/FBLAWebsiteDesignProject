@@ -10,15 +10,15 @@ from typing import Optional, List
 from jose import JWTError, jwt # type: ignore
 import bcrypt # type: ignore
 from apscheduler.schedulers.background import BackgroundScheduler # type: ignore
-import smtplib
-import ssl
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import requests
 import os
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables (python-dotenv optional)
+try:
+    from dotenv import load_dotenv #type: ignore
+    load_dotenv()
+except ImportError:
+    print("python-dotenv not installed; skipping .env file loading.")
 
 # --- SMTP Config ---
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
@@ -92,26 +92,96 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(send_monthly_newsletter_task, 'cron', day=1, hour=9, minute=0)
 
 def send_real_email(recipient: str, subject: str, body: str):
-    """Helper to send a real email using SMTP."""
-    if not SMTP_USER or not SMTP_PASSWORD:
-        print("SMTP credentials not configured. Skipping real email send.")
-        return False
-        
-    msg = MIMEMultipart()
-    msg['From'] = MAIL_FROM
-    msg['To'] = recipient
-    msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
-    
+    """Helper to send a real email using SMTP, Resend, or logging fallback."""
+    # 1. Log locally to sent_emails.txt for easy developer verification
     try:
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, context=context) as server:
-            server.login(SMTP_USER, SMTP_PASSWORD)
-            server.send_message(msg)
-        return True
-    except Exception as e:
-        print(f"SMTP Error: {e}")
-        return False
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        log_path = os.path.join(current_dir, "sent_emails.txt")
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(f"\n========================================\n")
+            f.write(f"TIMESTAMP: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"TO: {recipient}\n")
+            f.write(f"SUBJECT: {subject}\n")
+            f.write(f"BODY:\n{body}\n")
+            f.write(f"========================================\n")
+        print(f"Logged email to {log_path} successfully.")
+    except Exception as log_err:
+        print(f"Failed to log email locally: {log_err}")
+
+    # 2. Resend API service (highly recommended & professional)
+    RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+    if RESEND_API_KEY:
+        try:
+            print("Attempting to send email via Resend API...")
+            mail_from = os.getenv("MAIL_FROM", "")
+            # If standard onboarding testing
+            if not mail_from or "noreply@highmuseum.org" in mail_from:
+                from_email = "onboarding@resend.dev"
+            else:
+                from_email = mail_from
+            
+            payload = {
+                "from": from_email,
+                "to": recipient,
+                "subject": subject,
+                "text": body
+            }
+            headers = {
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json"
+            }
+            response = requests.post("https://api.resend.com/emails", json=payload, headers=headers, timeout=10)
+            if response.status_code in [200, 201]:
+                print(f"Successfully sent email via Resend to {recipient}")
+                return True
+            else:
+                print(f"Resend API Error: {response.status_code} - {response.text}")
+        except Exception as e:
+            print(f"Resend Exception: {e}")
+
+    # 3. Standard SMTP / SSL or STARTTLS service (Gmail, etc.)
+    SMTP_SERVER = os.getenv("SMTP_SERVER")
+    SMTP_PORT = os.getenv("SMTP_PORT")
+    SMTP_USER = os.getenv("SMTP_USER")
+    SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+    
+    if SMTP_SERVER and SMTP_USER and SMTP_PASSWORD:
+        try:
+            import smtplib
+            import ssl
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
+
+            print("Attempting to send email via SMTP...")
+            mail_from = os.getenv("MAIL_FROM", SMTP_USER)
+            msg = MIMEMultipart()
+            msg['From'] = mail_from
+            msg['To'] = recipient
+            msg['Subject'] = subject
+            msg.attach(MIMEText(body, 'plain'))
+            
+            port = int(SMTP_PORT) if SMTP_PORT else 465
+            context = ssl.create_default_context()
+            
+            if port == 465:
+                # SSL standard port
+                with smtplib.SMTP_SSL(SMTP_SERVER, port, context=context) as server:
+                    server.login(SMTP_USER, SMTP_PASSWORD)
+                    server.send_message(msg)
+            else:
+                # STARTTLS standard port (e.g. 587)
+                with smtplib.SMTP(SMTP_SERVER, port) as server:
+                    server.starttls(context=context)
+                    server.login(SMTP_USER, SMTP_PASSWORD)
+                    server.send_message(msg)
+            
+            print(f"Successfully sent email via SMTP to {recipient}")
+            return True
+        except Exception as smtp_err:
+            print(f"SMTP Exception: {smtp_err}")
+            
+    print("No working real email credentials configured, or mail delivery failed. Fallback logged.")
+    return False
 
 def process_email_queue_task():
     """Background task to send queued emails with retry logic for slow connections."""
@@ -606,6 +676,33 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
     new_user = User(email=clean_email, hashed_password=hashed_password)
     db.add(new_user)
     db.commit()
+    
+    # Queue welcome email
+    welcome_body = f"""
+Hello!
+
+Welcome to the High Museum of Art! Your membership account has been successfully created.
+
+You now have access to exclusive member benefits, including:
+- Free Member-only Admission Tickets ($0.00).
+- Special Member rates for museum events.
+- Access to the Monthly Museum Newsletter.
+
+We look forward to seeing you at the museum!
+
+Warm regards,
+The High Museum of Art Team
+"""
+    new_email = EmailQueue(
+        recipient=clean_email,
+        subject="Welcome to the High Museum of Art! 🎨",
+        body=welcome_body.strip(),
+        created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        status="pending"
+    )
+    db.add(new_email)
+    db.commit()
+
     return {"message": "User created successfully"}
 
 @app.post("/api/login")

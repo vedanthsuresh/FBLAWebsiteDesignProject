@@ -72,31 +72,8 @@ function Membership() {
         throw new Error(regData.detail || "Registration failed. Email may already be in use.");
       }
 
-      // 2. Send FormSubmit.co confirmation email
-      const response = await fetch(`https://formsubmit.co/ajax/${formData.email}`, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          "Subject": "Welcome to the High Museum Membership! 🎨",
-          "Message": `Hello, ${formData.name}! Thank you for choosing the ${selectedLevel.name} Membership. Your account has been created successfully. You can now log in to access the Monthly Newsletter.`,
-          "Member Name": formData.name,
-          "Membership Level": selectedLevel.name,
-          "Annual Rate": `$${selectedLevel.price}`,
-          "Reference ID": `MEM-${Math.floor(Math.random() * 900000) + 100000}`,
-          "_template": "table",
-          "_captcha": "false"
-        })
-      });
-
-      if (response.ok) {
-        setIsSubmitting(false);
-        setStep(3);
-      } else {
-        throw new Error("Confirmation email could not be sent, but your account was created.");
-      }
+      setIsSubmitting(false);
+      setStep(3);
     } catch (err) {
       console.error(err);
       setError(err.message || "Failed to complete membership. Please try again.");
