@@ -851,3 +851,75 @@ Total Amount: $16.50
 We look forward to seeing you at the museum!
 
 ========================================
+
+========================================
+TIMESTAMP: 2026-05-25 18:55:24
+TO: vedanth.suresh039@gmail.com
+SUBJECT: Friendly Reminder: Van Gogh Exhibition - VIP Entry starting soon! 🎨
+BODY:
+Hello!
+
+This is a friendly reminder that your upcoming event at the High Museum of Art is starting soon!
+
+Event Details:
+- Title: Van Gogh Exhibition - VIP Entry
+- Scheduled Time: May 25, 2026 at 07:40 PM
+
+We look forward to seeing you at the museum!
+
+Warm regards,
+The High Museum of Art Team
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 18:57:33
+TO: vedanth.suresh039@gmail.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Adult: $16.50
+
+Total Amount: $16.50
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 18:59:19
+TO: vedanth.suresh039@gmail.com
+SUBJECT: Your High Museum Purchase Confirmation
+BODY:
+
+Thank you for your purchase from the High Museum of Art!
+
+Order Summary:
+- Museum Admission - Adult: $16.50
+
+Total Amount: $16.50
+
+We look forward to seeing you at the museum!
+
+========================================
+
+========================================
+TIMESTAMP: 2026-05-25 19:04:01
+TO: vedanth.suresh039@gmail.com
+SUBJECT: Friendly Reminder: Museum Admission - Adult starting soon! 🎨
+BODY:
+Hello!
+
+This is a friendly reminder that your upcoming event at the High Museum of Art is starting soon!
+
+Event Details:
+- Title: Museum Admission - Adult
+- Scheduled Time: May 25, 2026 at 07:54 PM
+
+We look forward to seeing you at the museum!
+
+Warm regards,
+The High Museum of Art Team
+========================================

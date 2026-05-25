@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Header # type: igno
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm # type: ignore
 from sqlalchemy.orm import Session # type: ignore
-from database import SessionLocal, Event, Holiday, OperatingHour, User, Newsletter, NewsletterLog, EmailQueue, Artwork, EventException, engine, Base
+from database import SessionLocal, Event, Holiday, OperatingHour, User, Newsletter, NewsletterLog, EmailQueue, Artwork, EventException, Booking, engine, Base
 from datetime import date, datetime, timedelta
 from collections import defaultdict
 from pydantic import BaseModel
@@ -224,8 +224,67 @@ def process_email_queue_task():
     finally:
         db.close()
 
+def send_event_reminders_task():
+    """Background task to send email reminders to users exactly 1 hour before their scheduled time."""
+    db = SessionLocal()
+    try:
+        now = datetime.now()
+        one_hour_from_now = now + timedelta(hours=1)
+        
+        # Query bookings that are within 1 hour, in the future, and haven't received a reminder
+        pending_bookings = db.query(Booking).filter(
+            Booking.event_datetime <= one_hour_from_now,
+            Booking.event_datetime > now,
+            Booking.reminder_sent == False
+        ).all()
+        
+        if not pending_bookings:
+            return
+            
+        print(f"[{datetime.now()}] Processing {len(pending_bookings)} event reminder emails...")
+        
+        for booking in pending_bookings:
+            try:
+                # Format reminder email body
+                formatted_dt = booking.event_datetime.strftime("%B %d, %Y at %I:%M %p")
+                
+                subject = f"Friendly Reminder: {booking.event_title} starting soon! 🎨"
+                body = f"""
+Hello!
+
+This is a friendly reminder that your upcoming event at the High Museum of Art is starting soon!
+
+Event Details:
+- Title: {booking.event_title}
+- Scheduled Time: {formatted_dt}
+
+We look forward to seeing you at the museum!
+
+Warm regards,
+The High Museum of Art Team
+"""
+                print(f"Attempting to send reminder email to: {booking.email}")
+                success = send_real_email(booking.email, subject, body.strip())
+                
+                if success:
+                    booking.reminder_sent = True
+                    print(f"Successfully sent event reminder email to {booking.email}")
+                else:
+                    print(f"Failed to send reminder email to {booking.email}")
+                    
+            except Exception as item_err:
+                print(f"Error processing reminder for booking {booking.id}: {item_err}")
+                
+        db.commit()
+    except Exception as e:
+        print(f"Error in send_event_reminders_task: {e}")
+    finally:
+        db.close()
+
 # Check the email queue every minute for resilience
 scheduler.add_job(process_email_queue_task, 'interval', minutes=1)
+# Check for event reminders every minute
+scheduler.add_job(send_event_reminders_task, 'interval', minutes=1)
 
 @app.on_event("startup")
 def startup_event():
@@ -992,6 +1051,28 @@ Total Amount: ${req.total:.2f}
 We look forward to seeing you at the museum!
 """
     
+    import re
+    # Create Bookings for each valid ticket
+    for item in req.items:
+        if item.description:
+            # Match "Date: YYYY-MM-DD | Entry: HH:MM AM/PM"
+            match = re.search(r"Date:\s*([\d-]+)\s*\|\s*Entry:\s*([\d:]+\s*[APMapm]+)", item.description)
+            if match:
+                date_str = match.group(1)
+                time_str = match.group(2)
+                try:
+                    # Convert to datetime object
+                    event_dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %I:%M %p")
+                    new_booking = Booking(
+                        email=req.email,
+                        event_title=item.title,
+                        event_datetime=event_dt,
+                        reminder_sent=False
+                    )
+                    db.add(new_booking)
+                except Exception as parse_err:
+                    print(f"Failed to parse event datetime '{date_str} {time_str}': {parse_err}")
+
     # Send purchase email synchronously
     success = send_real_email(req.email, "Your High Museum Purchase Confirmation", body)
     

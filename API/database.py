@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Date, JSON
+from sqlalchemy import create_engine, Column, Integer, String, Date, JSON, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -95,3 +95,11 @@ class Newsletter(Base):
     citation = Column(String)
     verification_hash = Column(String)
     publish_at = Column(String) # For simplicity in SQLite, using ISO string
+
+class Booking(Base):
+    __tablename__ = "bookings"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, index=True)
+    event_title = Column(String)
+    event_datetime = Column(DateTime, index=True)
+    reminder_sent = Column(Boolean, default=False)
