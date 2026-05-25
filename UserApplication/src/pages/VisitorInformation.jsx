@@ -139,6 +139,20 @@ function VisitorInformation() {
               </div>
             </div>
 
+            {/* Google Maps Embed Card */}
+            <div className="bg-white border-4 border-black p-0 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all duration-300 overflow-hidden h-[350px] relative z-10">
+              <iframe
+                title="High Museum of Art Location Map"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3315.864770146059!2d-84.38796242347894!3d33.79133887325608!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1m2s0x88f5045cca30713b%3A0x6b8a8bcfefaf6ba!2sHigh%20Museum%20of%20Art!5e0!3m2!1sen!2sus!4v1716669999999!5m2!1sen!2sus"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+
             {/* Architectural Significance Card */}
             <div className="bg-white border-4 border-black p-8 md:p-10 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all duration-300">
               <h3 className="unna-bold text-3xl mb-4">{t('visitor.arch_head')}</h3>
