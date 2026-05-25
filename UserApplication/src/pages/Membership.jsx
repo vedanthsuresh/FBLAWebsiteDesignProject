@@ -444,7 +444,10 @@ function Membership() {
                     className="w-full bg-black text-white py-6 unna-bold text-2xl uppercase tracking-[0.2em] hover:bg-slate-800 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                   >
                     {isSubmitting ? (
-                      <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Sending Welcome Email...</span>
+                      </div>
                     ) : (
                       <>
                         <CreditCard size={24} /> {t('membership.confirm')}
@@ -474,7 +477,10 @@ function Membership() {
 
               <div className="space-y-4">
                 <h2 className="unna-bold text-5xl">{t('membership.welcome')}, {formData.name}!</h2>
-                <p className="unna text-2xl opacity-70 max-w-md mx-auto leading-relaxed">
+                <p className="unna text-2xl text-black font-bold uppercase tracking-tight">
+                  Welcome email has been sent successfully!
+                </p>
+                <p className="unna text-xl opacity-70 max-w-md mx-auto leading-relaxed">
                   {t('membership.received').replace('membership', selectedLevel?.name)}
                 </p>
                 <div className="p-6 bg-slate-50 border-2 border-dashed border-slate-300 inline-block">

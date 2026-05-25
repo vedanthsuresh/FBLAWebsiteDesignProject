@@ -125,7 +125,10 @@ const CartSidebar = () => {
                     <CheckCircle size={40} />
                   </div>
                   <h3 className="unna-bold text-3xl">{t('cart.thank_you', 'Thank You!')}</h3>
-                  <p className="unna text-xl text-slate-600">
+                  <p className="unna text-2xl text-black font-bold uppercase tracking-tight">
+                    Email has been sent successfully!
+                  </p>
+                  <p className="unna text-lg text-slate-600 leading-relaxed">
                     {t('cart.success_msg', 'Your purchase is confirmed. A receipt has been sent to your email.')}
                   </p>
                 </div>
@@ -211,7 +214,12 @@ const CartSidebar = () => {
                   disabled={isPurchasing}
                   className={`w-full py-5 bg-black text-white unna-bold text-2xl flex items-center justify-center gap-3 hover:bg-white hover:text-black border-4 border-black transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none ${isPurchasing ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {isPurchasing ? '...' : (
+                  {isPurchasing ? (
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Sending Confirmation Email...</span>
+                    </div>
+                  ) : (
                     <>
                       {t('cart.purchase', 'Complete Purchase')} <CreditCard size={24} />
                     </>

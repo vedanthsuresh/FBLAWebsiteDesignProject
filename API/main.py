@@ -693,16 +693,26 @@ We look forward to seeing you at the museum!
 Warm regards,
 The High Museum of Art Team
 """
+    # Send welcome email synchronously
+    success = send_real_email(clean_email, "Welcome to the High Museum of Art! 🎨", welcome_body.strip())
+    
     new_email = EmailQueue(
         recipient=clean_email,
         subject="Welcome to the High Museum of Art! 🎨",
         body=welcome_body.strip(),
         created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        status="pending"
+        status="sent" if success else "failed",
+        retry_count=0 if success else 1
     )
     db.add(new_email)
     db.commit()
 
+    if not success:
+        raise HTTPException(
+            status_code=500,
+            detail="Welcome email failed to send. Please check your SMTP settings in the .env file."
+        )
+ 
     return {"message": "User created successfully"}
 
 @app.post("/api/login")
@@ -982,15 +992,25 @@ Total Amount: ${req.total:.2f}
 We look forward to seeing you at the museum!
 """
     
+    # Send purchase email synchronously
+    success = send_real_email(req.email, "Your High Museum Purchase Confirmation", body)
+    
     new_email = EmailQueue(
         recipient=req.email,
         subject="Your High Museum Purchase Confirmation",
         body=body,
         created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        status="pending"
+        status="sent" if success else "failed",
+        retry_count=0 if success else 1
     )
     db.add(new_email)
     db.commit()
     db.refresh(new_email)
     
-    return {"message": "Purchase successful! Confirmation email queued.", "order_id": new_email.id}
+    if not success:
+        raise HTTPException(
+            status_code=500,
+            detail="Confirmation email failed to send. Please check your SMTP settings in the .env file."
+        )
+    
+    return {"message": "Purchase successful! Confirmation email sent.", "order_id": new_email.id}

@@ -1,6 +1,6 @@
 from database import Base, engine, SessionLocal, Event, Holiday, OperatingHour, Newsletter, User
 from datetime import date, datetime
-import bcrypt
+import bcrypt # type: ignore
 
 # 1. Create Tables
 Base.metadata.create_all(bind=engine)
