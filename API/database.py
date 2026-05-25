@@ -1,14 +1,34 @@
+import os
+# pyrefly: ignore [missing-import]
+from dotenv import load_dotenv
+# pyrefly: ignore [missing-import]
 from sqlalchemy import create_engine, Column, Integer, String, Date, JSON, DateTime, Boolean
+# pyrefly: ignore [missing-import]
 from sqlalchemy.ext.declarative import declarative_base
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import sessionmaker
 
+# Load environment variables
+load_dotenv()
+
 # 1. Create the Database URL
-SQLALCHEMY_DATABASE_URL = "sqlite:///./museum.db"
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./museum.db")
 
 # 2. Create the SQLAlchemy Engine
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+if "sqlite" in SQLALCHEMY_DATABASE_URL:
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    )
+else:
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL
+    )
+
+# Print connection type on server startup for verification
+db_type = "POSTGRESQL" if "postgresql" in SQLALCHEMY_DATABASE_URL.lower() else "SQLITE"
+print(f"=========================================================================")
+print(f"DATABASE: Connection established successfully ({db_type} mode).")
+print(f"=========================================================================")
 
 # 3. Create a SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
