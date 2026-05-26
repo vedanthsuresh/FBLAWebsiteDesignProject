@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Globe, User, LogOut, ShoppingBag } from 'lucide-react';
+import { Globe, User, LogOut, ShoppingCart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
@@ -68,7 +68,7 @@ function Navigation() {
             onClick={() => { toggleCart(); setIsMenuOpen(false); }}
             className="flex items-center gap-3 text-3xl text-black hover:text-slate-500 unna-bold pt-8"
           >
-            <ShoppingBag size={25} /> {t('nav.cart', 'Cart')} ({cart.length})
+            <ShoppingCart size={25} /> {t('nav.cart', 'Cart')} ({cart.length})
           </button>
         </div>
       </div>
@@ -140,7 +140,7 @@ function Navigation() {
               className="relative p-2 text-black hover:text-slate-500 transition-colors ml-4 border-l border-slate-200 pl-4"
               aria-label="Toggle Cart"
             >
-              <ShoppingBag size={20} />
+              <ShoppingCart size={20} />
               {cart.length > 0 && (
                 <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">
                   {cart.length}

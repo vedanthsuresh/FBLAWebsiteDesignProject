@@ -15,7 +15,17 @@ function FeaturedArts() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [favorites, setFavorites] = useState(() => {
     const saved = localStorage.getItem('hma_favorites');
-    return saved ? JSON.parse(saved) : [];
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(id => id !== null && id !== undefined && id !== "");
+        }
+      } catch (e) {
+        console.error("Error parsing favorites", e);
+      }
+    }
+    return [];
   });
 
   const [artworks, setArtworks] = useState([]);
@@ -47,6 +57,17 @@ function FeaturedArts() {
     };
     fetchArtworks();
   }, []);
+
+  // Keep favorites in sync with database artworks to filter out any deleted/invalid artwork IDs
+  useEffect(() => {
+    if (artworks.length > 0 && favorites.length > 0) {
+      const validIds = artworks.map(art => art.id);
+      const cleanedFavorites = favorites.filter(id => validIds.includes(id));
+      if (cleanedFavorites.length !== favorites.length) {
+        setFavorites(cleanedFavorites);
+      }
+    }
+  }, [artworks, favorites]);
 
   const departments = useMemo(() => {
     const deps = new Set(artworks.map(art => art.department));
@@ -120,7 +141,7 @@ function FeaturedArts() {
                 : activeDepartment === 'favorites'
                   ? t('featured.your_favorites')
                   : activeDepartment}
-              {activeDepartment === 'favorites' && ` (${favorites.length})`}
+              {activeDepartment === 'favorites' && ` (${filteredArtworks.length})`}
             </span>
           </div>
           <div className="flex items-center gap-3">

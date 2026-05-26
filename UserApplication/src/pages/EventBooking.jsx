@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Ticket, User, Mail, CheckCircle, ChevronRight, ChevronLeft, CreditCard, AlertCircle, Calendar as CalendarIcon, Clock, X, ShoppingBag, Lock } from 'lucide-react';
+import { Ticket, User, Mail, CheckCircle, ChevronRight, ChevronLeft, CreditCard, AlertCircle, Calendar as CalendarIcon, Clock, X, ShoppingCart, Lock } from 'lucide-react';
 import Footer from '../components/Footer';
 import CalendarView from '../components/CalendarView';
 import { useCart } from '../context/CartContext';
@@ -312,7 +312,7 @@ function EventBooking() {
                   className={`flex items-center gap-2 px-10 py-4 unna-bold text-xl transition-all ${isStep1Valid ? 'bg-black text-white hover:bg-slate-800 shadow-lg' : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                     }`}
                 >
-                  <ShoppingBag size={20} /> Add to Cart
+                  <ShoppingCart size={20} /> Add to Cart
                 </button>
               </div>
             </motion.div>

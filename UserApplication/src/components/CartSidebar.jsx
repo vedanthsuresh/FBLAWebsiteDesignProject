@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, ShoppingBag, ChevronDown, ChevronUp, Mail, CreditCard, CheckCircle } from 'lucide-react';
+import { X, Trash2, ShoppingCart, ChevronDown, ChevronUp, Mail, CreditCard, CheckCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -103,7 +103,7 @@ const CartSidebar = () => {
             {/* Header */}
             <div className="p-6 border-b-4 border-black flex items-center justify-between bg-black text-white">
               <div className="flex items-center gap-3">
-                <ShoppingBag size={24} />
+                <ShoppingCart size={24} />
                 <h2 className="unna-bold text-2xl uppercase tracking-widest">{t('cart.title', 'Your Cart')}</h2>
                 <span className="bg-white text-black px-2 py-0.5 text-xs font-black rounded-full">
                   {cart.length}
@@ -134,7 +134,7 @@ const CartSidebar = () => {
                 </div>
               ) : cart.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
-                  <ShoppingBag size={64} className="mb-4" />
+                  <ShoppingCart size={64} className="mb-4" />
                   <p className="unna text-xl italic">{t('cart.empty', 'Your cart is empty.')}</p>
                 </div>
               ) : (
