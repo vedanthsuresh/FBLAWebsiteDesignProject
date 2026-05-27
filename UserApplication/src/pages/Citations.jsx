@@ -53,6 +53,12 @@ function Citations() {
         desc: "Used as the cinematic background for the homepage hero section."
       },
       {
+        title: "High Museum of Art - Brand Logo",
+        citation: "High Museum of Art. 'Official Brand Identity Logo.' High Museum of Art Digital Resources, 2024, www.high.org.",
+        thumbnail: "/src/assets/images/high-logo.svg",
+        desc: "Official vector SVG logo asset used in the navigation bar."
+      },
+      {
         title: "Visitor Rating Assets",
         citation: "HMA Design System. 'Five Star Rating Icon.' 2024.",
         thumbnail: fiveStars,
