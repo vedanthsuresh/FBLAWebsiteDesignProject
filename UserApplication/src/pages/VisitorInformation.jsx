@@ -3,11 +3,26 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Clock, MapPin, Ticket, Coffee, ShoppingBag, Baby, Train } from 'lucide-react';
+import { Clock, MapPin, Ticket, Coffee, ShoppingBag, Baby, Train, WifiOff } from 'lucide-react';
+import mapStatic from '../assets/images/map-static.png';
 
 function VisitorInformation() {
   const { t } = useTranslation();
   const [museumStatus, setMuseumStatus] = useState({ isOpen: false, message: "Checking status..." });
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -140,17 +155,31 @@ function VisitorInformation() {
             </div>
 
             {/* Google Maps Embed Card */}
-            <div className="bg-white border-4 border-black p-0 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all duration-300 overflow-hidden h-[350px] relative z-10">
-              <iframe
-                title="High Museum of Art Location Map"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3315.864770146059!2d-84.38796242347894!3d33.79133887325608!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1m2s0x88f5045cca30713b%3A0x6b8a8bcfefaf6ba!2sHigh%20Museum%20of%20Art!5e0!3m2!1sen!2sus!4v1716669999999!5m2!1sen!2sus"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
+            <div className="bg-white border-4 border-black p-0 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all duration-300 overflow-hidden h-[350px] relative z-10 flex flex-col">
+              {isOnline ? (
+                <iframe
+                  title="High Museum of Art Location Map"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3315.864770146059!2d-84.38796242347894!3d33.79133887325608!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1m2s0x88f5045cca30713b%3A0x6b8a8bcfefaf6ba!2sHigh%20Museum%20of%20Art!5e0!3m2!1sen!2sus!4v1716669999999!5m2!1sen!2sus"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                ></iframe>
+              ) : (
+                <div className="relative w-full h-full group bg-slate-50 flex flex-col justify-between">
+                  <img
+                    src={mapStatic}
+                    alt="High Museum of Art Location Map (Offline Overview)"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-black text-white px-4 py-3 flex items-center gap-3 font-bold text-xs uppercase tracking-wider shadow-inner z-20">
+                    <WifiOff size={16} className="text-red-500 animate-pulse" />
+                    <span>Offline Mode: Showing Local Map Overview</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Architectural Significance Card */}
