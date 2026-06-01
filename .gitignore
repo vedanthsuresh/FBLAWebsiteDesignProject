@@ -6,6 +6,9 @@ env/
 __pycache__/
 *.pyc
 museum.db
+API/seed_newsletters.py
+API/migrate_to_postgres.py
+API/sent_emails.txt
 
 # Environment Variables
 .env
