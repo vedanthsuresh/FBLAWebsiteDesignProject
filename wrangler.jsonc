@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fblawebsitedesignproject",
+  "compatibility_date": "2026-06-02",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "AdminApplication"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}
