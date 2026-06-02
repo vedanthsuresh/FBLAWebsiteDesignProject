@@ -2,7 +2,7 @@ import os
 # pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 # pyrefly: ignore [missing-import]
-from sqlalchemy import create_engine, Column, Integer, String, Date, JSON, DateTime, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, Date, JSON, DateTime, Boolean, Float
 # pyrefly: ignore [missing-import]
 from sqlalchemy.ext.declarative import declarative_base
 # pyrefly: ignore [missing-import]
@@ -123,3 +123,10 @@ class Booking(Base):
     event_title = Column(String)
     event_datetime = Column(DateTime, index=True)
     reminder_sent = Column(Boolean, default=False)
+
+class TicketOption(Base):
+    __tablename__ = "ticket_options"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    code = Column(String, unique=True, index=True)
+    price = Column(Float, default=0.0)

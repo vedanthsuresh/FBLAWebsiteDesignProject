@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Header # type: igno
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm # type: ignore
 from sqlalchemy.orm import Session # type: ignore
-from database import SessionLocal, Event, Holiday, OperatingHour, User, Newsletter, NewsletterLog, EmailQueue, Artwork, EventException, Booking, engine, Base
+from database import SessionLocal, Event, Holiday, OperatingHour, User, Newsletter, NewsletterLog, EmailQueue, Artwork, EventException, Booking, engine, Base, TicketOption
 from datetime import date, datetime, timedelta
 from collections import defaultdict
 from pydantic import BaseModel
@@ -290,6 +290,24 @@ scheduler.add_job(send_event_reminders_task, 'interval', minutes=1)
 def startup_event():
     scheduler.start()
     print("Background Scheduler Started.")
+    
+    # Seed default ticket options if the table is empty
+    db = SessionLocal()
+    try:
+        if db.query(TicketOption).count() == 0:
+            default_options = [
+                TicketOption(name="Adult", code="adult", price=16.50),
+                TicketOption(name="Student", code="student", price=14.50),
+                TicketOption(name="Senior", code="senior", price=14.50),
+                TicketOption(name="Member Exclusive", code="member", price=0.0)
+            ]
+            db.add_all(default_options)
+            db.commit()
+            print("Successfully seeded default ticket options.")
+    except Exception as e:
+        print(f"Error seeding default ticket options: {e}")
+    finally:
+        db.close()
 
 @app.on_event("shutdown")
 def shutdown_event():
@@ -345,6 +363,20 @@ class UserCreate(BaseModel):
     email: str
     password: str
     role: str = "admin"
+
+class TicketOptionCreate(BaseModel):
+    name: str
+    code: str
+    price: float
+
+class TicketOptionResponse(BaseModel):
+    id: int
+    name: str
+    code: str
+    price: float
+
+    class Config:
+        from_attributes = True
 
 class EmailCreate(BaseModel):
     recipient: str
@@ -846,6 +878,97 @@ def delete_admin_user(
     db.delete(user)
     db.commit()
     return {"message": "Admin user deleted successfully"}
+
+# --- Super Admin Members Management Endpoints ---
+
+@app.get("/api/admin/members", response_model=List[UserAdminResponse])
+def get_members(
+    current_user: User = Depends(get_current_super_admin),
+    db: Session = Depends(get_db)
+):
+    """List all members (Super Admin only)."""
+    return db.query(User).filter(User.role == "member").all()
+
+@app.post("/api/admin/members")
+def create_member(
+    user_data: UserCreate,
+    current_user: User = Depends(get_current_super_admin),
+    db: Session = Depends(get_db)
+):
+    """Create a new member (Super Admin only)."""
+    clean_email = user_data.email.strip().lower()
+    existing = db.query(User).filter(User.email == clean_email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="User already exists")
+    
+    hashed_pwd = get_password_hash(user_data.password)
+    new_user = User(email=clean_email, hashed_password=hashed_pwd, role="member")
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return {"message": "Member created successfully", "id": new_user.id}
+
+@app.delete("/api/admin/members/{member_id}")
+def delete_member(
+    member_id: int,
+    current_user: User = Depends(get_current_super_admin),
+    db: Session = Depends(get_db)
+):
+    """Delete a member (Super Admin only)."""
+    member = db.query(User).filter(User.id == member_id, User.role == "member").first()
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found")
+    
+    db.delete(member)
+    db.commit()
+    return {"message": "Member deleted successfully"}
+
+
+# --- Ticket Options Endpoints (Public & Super Admin) ---
+
+@app.get("/api/tickets/options", response_model=List[TicketOptionResponse])
+def get_ticket_options(db: Session = Depends(get_db)):
+    """List all ticket options (Public)."""
+    return db.query(TicketOption).all()
+
+@app.post("/api/admin/tickets/options", response_model=TicketOptionResponse)
+def create_ticket_option(
+    option_data: TicketOptionCreate,
+    current_user: User = Depends(get_current_super_admin),
+    db: Session = Depends(get_db)
+):
+    """Create a new ticket option (Super Admin only)."""
+    clean_code = option_data.code.strip().lower()
+    clean_name = option_data.name.strip()
+    
+    existing_code = db.query(TicketOption).filter(TicketOption.code == clean_code).first()
+    if existing_code:
+        raise HTTPException(status_code=400, detail="Ticket option with this code already exists")
+        
+    existing_name = db.query(TicketOption).filter(TicketOption.name == clean_name).first()
+    if existing_name:
+        raise HTTPException(status_code=400, detail="Ticket option with this name already exists")
+        
+    new_option = TicketOption(name=clean_name, code=clean_code, price=option_data.price)
+    db.add(new_option)
+    db.commit()
+    db.refresh(new_option)
+    return new_option
+
+@app.delete("/api/admin/tickets/options/{option_id}")
+def delete_ticket_option(
+    option_id: int,
+    current_user: User = Depends(get_current_super_admin),
+    db: Session = Depends(get_db)
+):
+    """Delete a ticket option (Super Admin only)."""
+    option = db.query(TicketOption).filter(TicketOption.id == option_id).first()
+    if not option:
+        raise HTTPException(status_code=404, detail="Ticket option not found")
+        
+    db.delete(option)
+    db.commit()
+    return {"message": "Ticket option deleted successfully"}
 
 # --- Protected Newsletter Endpoint ---
 

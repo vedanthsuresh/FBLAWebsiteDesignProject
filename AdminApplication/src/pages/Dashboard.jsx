@@ -1,4 +1,4 @@
-import { Plus, Trash2, Calendar, LogOut, Palmtree, Image as ImageIcon, Mail, Save, Globe, Clock, ChevronDown, ChevronUp, Users, ShieldCheck, Eye, EyeOff, Pencil, X } from "lucide-react";
+import { Plus, Trash2, Calendar, LogOut, Palmtree, Image as ImageIcon, Mail, Save, Globe, Clock, ChevronDown, ChevronUp, Users, ShieldCheck, Eye, EyeOff, Pencil, X, Ticket } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from 'react';
 
@@ -11,6 +11,11 @@ export default function Dashboard() {
   const [users, setUsers] = useState([]);
   const [newAdmin, setNewAdmin] = useState({ email: "", password: "", role: "admin" });
   const [showAdminPassword, setShowAdminPassword] = useState(true);
+  const [members, setMembers] = useState([]);
+  const [newMember, setNewMember] = useState({ email: "", password: "" });
+  const [showMemberPassword, setShowMemberPassword] = useState(true);
+  const [ticketOptions, setTicketOptions] = useState([]);
+  const [newTicketOption, setNewTicketOption] = useState({ name: "", code: "", price: "" });
 
   const role = localStorage.getItem("admin_role");
   const token = localStorage.getItem("admin_token");
@@ -49,6 +54,8 @@ export default function Dashboard() {
     const tasks = [fetchEvents(), fetchHolidays(), fetchArtworks(), fetchNewsletters()];
     if (role === "super_admin") {
       tasks.push(fetchUsers());
+      tasks.push(fetchMembers());
+      tasks.push(fetchTicketOptions());
     }
     await Promise.all(tasks);
     setLoading(false);
@@ -114,6 +121,36 @@ export default function Dashboard() {
       if (Array.isArray(data)) setUsers(data);
     } catch (error) {
       console.error("Error fetching users:", error);
+    }
+  };
+
+  const fetchMembers = async () => {
+    if (role !== "super_admin") return;
+    try {
+      const res = await fetch(`${API_URL}/admin/members`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.status === 401) {
+        handleLogout();
+        return;
+      }
+      const data = await res.json();
+      if (Array.isArray(data)) setMembers(data);
+    } catch (error) {
+      console.error("Error fetching members:", error);
+    }
+  };
+
+  const fetchTicketOptions = async () => {
+    if (role !== "super_admin") return;
+    try {
+      const res = await fetch(`${API_URL}/tickets/options`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) setTicketOptions(data);
+    } catch (error) {
+      console.error("Error fetching ticket options:", error);
     }
   };
 
@@ -215,6 +252,100 @@ export default function Dashboard() {
       fetchUsers();
     } catch (error) {
       console.error("Error deleting user:", error);
+    }
+  };
+
+  const handleCreateMember = async (e) => {
+    e.preventDefault();
+    if (!newMember.email || !newMember.password) return;
+    if (role !== "super_admin") return;
+    try {
+      const res = await fetch(`${API_URL}/admin/members`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ ...newMember, role: "member" }),
+      });
+      if (res.ok) {
+        alert("Member created successfully");
+        setNewMember({ email: "", password: "" });
+        fetchMembers();
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to create member: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error creating member:", error);
+      alert("Network error while creating member");
+    }
+  };
+
+  const handleDeleteMember = async (id) => {
+    if (!confirm("Are you sure you want to delete this member?")) return;
+    try {
+      const res = await fetch(`${API_URL}/admin/members/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        fetchMembers();
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to delete member: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error deleting member:", error);
+    }
+  };
+
+  const handleCreateTicketOption = async (e) => {
+    e.preventDefault();
+    if (!newTicketOption.name || !newTicketOption.code) return;
+    if (role !== "super_admin") return;
+    try {
+      const res = await fetch(`${API_URL}/admin/tickets/options`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: newTicketOption.name,
+          code: newTicketOption.code.trim().toLowerCase(),
+          price: parseFloat(newTicketOption.price) || 0.0
+        }),
+      });
+      if (res.ok) {
+        alert("Ticket option created successfully");
+        setNewTicketOption({ name: "", code: "", price: "" });
+        fetchTicketOptions();
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to create ticket option: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error creating ticket option:", error);
+      alert("Network error while creating ticket option");
+    }
+  };
+
+  const handleDeleteTicketOption = async (id) => {
+    if (!confirm("Are you sure you want to delete this ticket option?")) return;
+    try {
+      const res = await fetch(`${API_URL}/admin/tickets/options/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        fetchTicketOptions();
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to delete ticket option: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error deleting ticket option:", error);
     }
   };
 
@@ -499,15 +630,35 @@ export default function Dashboard() {
             </button>
           ))}
           {role === "super_admin" && (
-            <button
-              onClick={() => setActiveTab("management")}
-              className={`px-8 py-4 text-[10px] font-black uppercase tracking-[0.25em] transition-all border-b-2 whitespace-nowrap flex items-center gap-3 ${activeTab === "management"
-                ? "border-black text-black"
-                : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200"
-                }`}
-            >
-              <Users size={16} /> Team Management
-            </button>
+            <>
+              <button
+                onClick={() => setActiveTab("management")}
+                className={`px-8 py-4 text-[10px] font-black uppercase tracking-[0.25em] transition-all border-b-2 whitespace-nowrap flex items-center gap-3 ${activeTab === "management"
+                  ? "border-black text-black"
+                  : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200"
+                  }`}
+              >
+                <Users size={16} /> Team Management
+              </button>
+              <button
+                onClick={() => setActiveTab("members")}
+                className={`px-8 py-4 text-[10px] font-black uppercase tracking-[0.25em] transition-all border-b-2 whitespace-nowrap flex items-center gap-3 ${activeTab === "members"
+                  ? "border-black text-black"
+                  : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200"
+                  }`}
+              >
+                <ShieldCheck size={16} /> Members
+              </button>
+              <button
+                onClick={() => setActiveTab("tickets")}
+                className={`px-8 py-4 text-[10px] font-black uppercase tracking-[0.25em] transition-all border-b-2 whitespace-nowrap flex items-center gap-3 ${activeTab === "tickets"
+                  ? "border-black text-black"
+                  : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200"
+                  }`}
+              >
+                <Ticket size={16} /> Ticket Options
+              </button>
+            </>
           )}
         </div>
 
@@ -866,6 +1017,164 @@ export default function Dashboard() {
                       </button>
                     </div>
                   ))}
+                </div>
+              </div>
+            </>
+          ) : activeTab === "members" ? (
+            <>
+              {/* Add New Member */}
+              <div className="bg-white p-10 rounded-none shadow-sm h-fit border border-gray-100">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 text-black pb-2 border-b border-black w-fit">Add New Member</h2>
+                <form onSubmit={handleCreateMember} className="space-y-6">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Member Email</label>
+                    <input
+                      type="email"
+                      required
+                      value={newMember.email}
+                      onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm"
+                      placeholder="member@example.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Password</label>
+                    <div className="relative">
+                      <input
+                        type={showMemberPassword ? "password" : "text"}
+                        required
+                        value={newMember.password}
+                        onChange={(e) => setNewMember({ ...newMember, password: e.target.value })}
+                        className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm pr-10"
+                        placeholder="••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowMemberPassword(!showMemberPassword)}
+                        className="absolute right-0 top-2 text-gray-400 hover:text-black transition-colors"
+                      >
+                        {showMemberPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                  <button type="submit" className="w-full bg-black text-white py-4 rounded-none font-bold text-[10px] uppercase tracking-[0.3em] hover:bg-gray-900 shadow-xl transition-all mt-4">
+                    Add Member
+                  </button>
+                </form>
+              </div>
+
+              <div className="lg:col-span-2 bg-white p-10 rounded-none shadow-sm border border-gray-100">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 text-black pb-2 border-b border-black w-fit">Member Directory</h2>
+                <div className="divide-y divide-gray-50">
+                  {members.length === 0 ? (
+                    <p className="text-sm text-gray-400 italic py-6">No members registered yet.</p>
+                  ) : (
+                    members.map((m) => (
+                      <div key={m.id} className="flex justify-between items-center py-6 px-2 hover:bg-gray-50 transition-all group">
+                        <div className="flex items-center gap-6">
+                          <div className="w-12 h-12 flex items-center justify-center border border-gray-200 text-gray-400 group-hover:border-black group-hover:text-black transition-all">
+                            <ShieldCheck size={20} />
+                          </div>
+                          <div>
+                            <p className="font-bold text-black uppercase tracking-tighter text-sm">
+                              {m.email}
+                            </p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300 mt-1">
+                              Museum Member
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteMember(m.id)}
+                          className="p-3 text-gray-200 hover:text-black hover:border-black border border-transparent transition-all"
+                          title="Remove Member"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </>
+          ) : activeTab === "tickets" ? (
+            <>
+              {/* Add New Ticket Option */}
+              <div className="bg-white p-10 rounded-none shadow-sm h-fit border border-gray-100">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 text-black pb-2 border-b border-black w-fit">Add Ticket Option</h2>
+                <form onSubmit={handleCreateTicketOption} className="space-y-6">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Option Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={newTicketOption.name}
+                      onChange={(e) => setNewTicketOption({ ...newTicketOption, name: e.target.value })}
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm"
+                      placeholder="e.g. Adult"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Option Code</label>
+                    <input
+                      type="text"
+                      required
+                      value={newTicketOption.code}
+                      onChange={(e) => setNewTicketOption({ ...newTicketOption, code: e.target.value })}
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm"
+                      placeholder="e.g. adult"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Price ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={newTicketOption.price}
+                      onChange={(e) => setNewTicketOption({ ...newTicketOption, price: e.target.value })}
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm"
+                      placeholder="e.g. 16.50"
+                    />
+                  </div>
+                  <button type="submit" className="w-full bg-black text-white py-4 rounded-none font-bold text-[10px] uppercase tracking-[0.3em] hover:bg-gray-900 shadow-xl transition-all mt-4">
+                    Add Option
+                  </button>
+                </form>
+              </div>
+
+              <div className="lg:col-span-2 bg-white p-10 rounded-none shadow-sm border border-gray-100">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 text-black pb-2 border-b border-black w-fit">Ticket Categories</h2>
+                <div className="divide-y divide-gray-50">
+                  {ticketOptions.length === 0 ? (
+                    <p className="text-sm text-gray-400 italic py-6">No ticket options configured.</p>
+                  ) : (
+                    ticketOptions.map((opt) => (
+                      <div key={opt.id} className="flex justify-between items-center py-6 px-2 hover:bg-gray-50 transition-all group">
+                        <div className="flex items-center gap-6">
+                          <div className="w-12 h-12 flex items-center justify-center border border-gray-200 text-gray-400 group-hover:border-black group-hover:text-black transition-all">
+                            <Ticket size={20} />
+                          </div>
+                          <div>
+                            <p className="font-bold text-black uppercase tracking-tighter text-sm flex items-center gap-3">
+                              {opt.name}
+                              <span className="text-[9px] font-bold border border-gray-300 px-1.5 py-0.5 text-gray-400 tracking-wider font-mono uppercase">{opt.code}</span>
+                            </p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300 mt-1">
+                              Price: ${opt.price.toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteTicketOption(opt.id)}
+                          className="p-3 text-gray-200 hover:text-black hover:border-black border border-transparent transition-all"
+                          title="Remove Option"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </>

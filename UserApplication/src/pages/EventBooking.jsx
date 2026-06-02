@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Ticket, User, Mail, CheckCircle, ChevronRight, ChevronLeft, CreditCard, AlertCircle, Calendar as CalendarIcon, Clock, X, ShoppingCart, Lock } from 'lucide-react';
@@ -15,12 +15,39 @@ function EventBooking() {
   const routerNavigate = useRouterNavigate();
   const location = useLocation();
 
-  const TICKET_TYPES = [
-    { id: 'adult', label: t('tickets.types.adult'), price: 16.50 },
-    { id: 'student', label: t('tickets.types.student'), price: 14.50 },
-    { id: 'senior', label: t('tickets.types.senior'), price: 14.50 },
-    { id: 'member', label: t('tickets.types.member'), price: 0 }
-  ];
+  const [ticketTypes, setTicketTypes] = useState([
+    { id: 'adult', code: 'adult', label: t('tickets.types.adult'), price: 16.50 },
+    { id: 'student', code: 'student', label: t('tickets.types.student'), price: 14.50 },
+    { id: 'senior', code: 'senior', label: t('tickets.types.senior'), price: 14.50 },
+    { id: 'member', code: 'member', label: t('tickets.types.member'), price: 0 }
+  ]);
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/tickets/options')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped = data.map(item => ({
+            id: item.code,
+            code: item.code,
+            label: t(`tickets.types.${item.code.toLowerCase()}`, item.name),
+            price: item.price
+          }));
+          setTicketTypes(mapped);
+          setQuantities(prev => {
+            const next = { ...prev };
+            mapped.forEach(t => {
+              if (next[t.code] === undefined) {
+                next[t.code] = 0;
+              }
+            });
+            return next;
+          });
+        }
+      })
+      .catch(err => console.error("Failed to fetch ticket options:", err));
+  }, []);
+
   const [quantities, setQuantities] = useState(() => {
     if (location.state?.quantities) {
       const q = { ...location.state.quantities };
@@ -36,14 +63,15 @@ function EventBooking() {
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const [filterMode, setFilterMode] = useState(location.state?.filterMode || 'all'); // 'all' | 'general' | 'member'
 
-  const filteredTicketTypes = TICKET_TYPES.filter(type => {
+  const filteredTicketTypes = ticketTypes.filter(type => {
     if (filterMode === 'general') return type.id !== 'member';
     if (filterMode === 'member') return type.id === 'member';
     return true;
   });
 
   const total = Object.entries(quantities).reduce((acc, [id, qty]) => {
-    const price = TICKET_TYPES.find(t => t.id === id).price;
+    const option = ticketTypes.find(t => t.id === id);
+    const price = option ? option.price : 0;
     return acc + (price * qty);
   }, 0);
 
@@ -61,19 +89,23 @@ function EventBooking() {
   const handleAddToCart = () => {
     Object.entries(quantities).forEach(([id, qty]) => {
       if (qty > 0) {
-        const type = TICKET_TYPES.find(t => t.id === id);
-        for(let i=0; i<qty; i++) {
-          addToCart({
-            title: `${eventTitle || 'Special Event'} - ${type.label}`,
-            description: `Date: ${selectedDate} | Entry: ${selectedTime}`,
-            price: type.price
-          });
+        const type = ticketTypes.find(t => t.id === id);
+        if (type) {
+          for(let i=0; i<qty; i++) {
+            addToCart({
+              title: `${eventTitle || 'Special Event'} - ${type.label}`,
+              description: `Date: ${selectedDate} | Entry: ${selectedTime}`,
+              price: type.price
+            });
+          }
         }
       }
     });
 
     // Reset Form
-    setQuantities({ adult: 0, student: 0, senior: 0, member: 0 });
+    const resetObj = {};
+    ticketTypes.forEach(t => { resetObj[t.id] = 0; });
+    setQuantities(resetObj);
     setSelectedDate('');
     setSelectedTime('');
     setEventTitle('');
