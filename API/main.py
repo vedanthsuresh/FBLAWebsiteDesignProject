@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Header # type: igno
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm # type: ignore
 from sqlalchemy.orm import Session # type: ignore
-from database import SessionLocal, Event, Holiday, OperatingHour, User, Newsletter, NewsletterLog, EmailQueue, Artwork, EventException, Booking, engine, Base, TicketOption
+from database import SessionLocal, Event, Holiday, OperatingHour, User, Newsletter, NewsletterLog, EmailQueue, Artwork, EventException, Booking, engine, Base, TicketOption, DiscountRate
 from datetime import date, datetime, timedelta
 from collections import defaultdict
 from pydantic import BaseModel
@@ -12,6 +12,9 @@ import bcrypt # type: ignore
 from apscheduler.schedulers.background import BackgroundScheduler # type: ignore
 import requests
 import os
+import time
+
+ACTIVE_VISITORS = {}
 
 # Load environment variables (python-dotenv optional)
 try:
@@ -304,8 +307,17 @@ def startup_event():
             db.add_all(default_options)
             db.commit()
             print("Successfully seeded default ticket options.")
+        
+        # Seed default discount rates if the table is empty
+        if db.query(DiscountRate).count() == 0:
+            default_discounts = [
+                DiscountRate(code="WELCOME10", rate=10.0, is_active=True)
+            ]
+            db.add_all(default_discounts)
+            db.commit()
+            print("Successfully seeded default discount rates.")
     except Exception as e:
-        print(f"Error seeding default ticket options: {e}")
+        print(f"Error seeding default startup data: {e}")
     finally:
         db.close()
 
@@ -377,6 +389,23 @@ class TicketOptionResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class DiscountRateCreate(BaseModel):
+    code: str
+    rate: float
+    is_active: Optional[bool] = True
+
+class DiscountRateResponse(BaseModel):
+    id: int
+    code: str
+    rate: float
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+class VisitorPingRequest(BaseModel):
+    session_id: str
 
 class EmailCreate(BaseModel):
     recipient: str
@@ -969,6 +998,157 @@ def delete_ticket_option(
     db.delete(option)
     db.commit()
     return {"message": "Ticket option deleted successfully"}
+
+
+# --- Discount Rates Endpoints (Public & Super Admin) ---
+
+@app.get("/api/tickets/discounts", response_model=List[DiscountRateResponse])
+def get_discount_rates(db: Session = Depends(get_db)):
+    """List all active discount rates (Public)."""
+    return db.query(DiscountRate).filter(DiscountRate.is_active == True).all()
+
+@app.post("/api/admin/tickets/discounts", response_model=DiscountRateResponse)
+def create_discount_rate(
+    discount_data: DiscountRateCreate,
+    current_user: User = Depends(get_current_super_admin),
+    db: Session = Depends(get_db)
+):
+    """Create a new discount rate (Super Admin only)."""
+    clean_code = discount_data.code.strip().upper()
+    
+    existing = db.query(DiscountRate).filter(DiscountRate.code == clean_code).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Discount code already exists")
+        
+    new_discount = DiscountRate(
+        code=clean_code,
+        rate=discount_data.rate,
+        is_active=discount_data.is_active
+    )
+    db.add(new_discount)
+    db.commit()
+    db.refresh(new_discount)
+    return new_discount
+
+@app.delete("/api/admin/tickets/discounts/{discount_id}")
+def delete_discount_rate(
+    discount_id: int,
+    current_user: User = Depends(get_current_super_admin),
+    db: Session = Depends(get_db)
+):
+    """Delete a discount rate (Super Admin only)."""
+    discount = db.query(DiscountRate).filter(DiscountRate.id == discount_id).first()
+    if not discount:
+        raise HTTPException(status_code=404, detail="Discount rate not found")
+        
+    db.delete(discount)
+    db.commit()
+    return {"message": "Discount rate deleted successfully"}
+
+
+# --- Visitor Traffic & Dashboard Statistics Endpoints ---
+
+@app.post("/api/visitor/ping")
+def visitor_ping(req: VisitorPingRequest):
+    ACTIVE_VISITORS[req.session_id] = time.time()
+    return {"status": "ok"}
+
+@app.get("/api/admin/statistics")
+def get_admin_statistics(
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
+    # 1. Count registered members
+    member_count = db.query(User).filter(User.role == "member").count()
+
+    # 2. Count tickets booked (scheduled) for today
+    today = date.today()
+    start_of_today = datetime.combine(today, datetime.min.time())
+    end_of_today = datetime.combine(today, datetime.max.time())
+    tickets_today = db.query(Booking).filter(
+        Booking.event_datetime >= start_of_today,
+        Booking.event_datetime <= end_of_today
+    ).count()
+
+    # 3. Clean up active visitors older than 5 minutes (300 seconds)
+    now = time.time()
+    expired = [sess for sess, last_seen in ACTIVE_VISITORS.items() if now - last_seen > 300]
+    for sess in expired:
+        ACTIVE_VISITORS.pop(sess, None)
+    
+    # Calculate visitor count
+    live_visitors = len(ACTIVE_VISITORS)
+
+    return {
+        "live_visitors": live_visitors,
+        "registered_members": member_count,
+        "tickets_booked_today": tickets_today
+    }
+
+
+@app.get("/api/admin/bookings")
+def get_admin_bookings(
+    date_str: Optional[str] = None,
+    page: int = 1,
+    limit: int = 20,
+    search: Optional[str] = None,
+    current_user: User = Depends(get_current_any_admin),
+    db: Session = Depends(get_db)
+):
+    """Retrieve paginated and searchable bookings list for a specific day (Admin only)."""
+    query = db.query(Booking)
+
+    # 1. Filter by Date if specified (otherwise default to today)
+    if not date_str:
+        today = date.today()
+    else:
+        try:
+            today = date.fromisoformat(date_str)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+            
+    start_of_day = datetime.combine(today, datetime.min.time())
+    end_of_day = datetime.combine(today, datetime.max.time())
+    query = query.filter(
+        Booking.event_datetime >= start_of_day,
+        Booking.event_datetime <= end_of_day
+    )
+
+    # 2. Search filter
+    if search:
+        search_pattern = f"%{search.strip().lower()}%"
+        query = query.filter(
+            (Booking.email.ilike(search_pattern)) | 
+            (Booking.event_title.ilike(search_pattern))
+        )
+
+    # 3. Order by event_datetime
+    query = query.order_by(Booking.event_datetime.asc())
+
+    # 4. Total count
+    total_count = query.count()
+
+    # 5. Paginate
+    offset = (page - 1) * limit
+    bookings = query.offset(offset).limit(limit).all()
+
+    total_pages = (total_count + limit - 1) // limit if total_count > 0 else 1
+
+    return {
+        "bookings": [
+            {
+                "id": b.id,
+                "email": b.email,
+                "event_title": b.event_title,
+                "event_datetime": b.event_datetime.isoformat() if b.event_datetime else None
+            } for b in bookings
+        ],
+        "total_count": total_count,
+        "page": page,
+        "limit": limit,
+        "total_pages": total_pages
+    }
+
 
 # --- Protected Newsletter Endpoint ---
 

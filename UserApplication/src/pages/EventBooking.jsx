@@ -22,6 +22,41 @@ function EventBooking() {
     { id: 'member', code: 'member', label: t('tickets.types.member'), price: 0 }
   ]);
 
+  const [discounts, setDiscounts] = useState([
+    { code: 'WELCOME10', rate: 10.0 }
+  ]);
+  const [promoInput, setPromoInput] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState(null);
+  const [promoError, setPromoError] = useState('');
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/tickets/discounts')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setDiscounts(data);
+        }
+      })
+      .catch(err => {
+        console.warn("Failed to fetch discounts, using offline fallback", err);
+      });
+  }, []);
+
+  const handleApplyPromo = () => {
+    setPromoError('');
+    const code = promoInput.trim().toUpperCase();
+    if (!code) return;
+
+    const found = discounts.find(d => d.code === code);
+    if (found) {
+      setAppliedPromo(found);
+      setPromoError('');
+    } else {
+      setAppliedPromo(null);
+      setPromoError('Invalid promotion code');
+    }
+  };
+
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/tickets/options')
       .then(res => res.json())
@@ -69,11 +104,14 @@ function EventBooking() {
     return true;
   });
 
-  const total = Object.entries(quantities).reduce((acc, [id, qty]) => {
+  const subtotal = Object.entries(quantities).reduce((acc, [id, qty]) => {
     const option = ticketTypes.find(t => t.id === id);
     const price = option ? option.price : 0;
     return acc + (price * qty);
   }, 0);
+
+  const discountAmount = appliedPromo ? (subtotal * appliedPromo.rate) / 100 : 0;
+  const total = subtotal - discountAmount;
 
   const handleQuantityChange = (id, delta) => {
     if (id === 'member' && delta > 0 && !isAuthenticated) {
@@ -91,11 +129,13 @@ function EventBooking() {
       if (qty > 0) {
         const type = ticketTypes.find(t => t.id === id);
         if (type) {
+          const finalPrice = appliedPromo ? type.price * (1 - appliedPromo.rate / 100) : type.price;
+          const promoSuffix = appliedPromo ? ` (${appliedPromo.code})` : '';
           for(let i=0; i<qty; i++) {
             addToCart({
-              title: `${eventTitle || 'Special Event'} - ${type.label}`,
+              title: `${eventTitle || 'Special Event'} - ${type.label}${promoSuffix}`,
               description: `Date: ${selectedDate} | Entry: ${selectedTime}`,
-              price: type.price
+              price: finalPrice
             });
           }
         }
@@ -109,6 +149,8 @@ function EventBooking() {
     setSelectedDate('');
     setSelectedTime('');
     setEventTitle('');
+    setPromoInput('');
+    setAppliedPromo(null);
   };
 
   const isStep1Valid = Object.values(quantities).some(qty => qty > 0) && selectedDate !== '';
@@ -207,6 +249,18 @@ function EventBooking() {
               className="bg-white border-4 border-black p-8 md:p-12 shadow-[16px_16px_0px_0px_rgba(0,0,0,1)]"
             >
               <h2 className="unna-bold text-4xl mb-8 border-b-4 border-black pb-4">Book Special Event</h2>
+              {discounts.length > 0 && (
+                <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-8 text-sm text-amber-900 rounded-none font-medium flex flex-col gap-1">
+                  <span className="font-black tracking-widest text-[10px] uppercase text-amber-700">Active Promotions</span>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {discounts.map(d => (
+                      <span key={d.code} className="inline-block bg-white border border-amber-200 px-2 py-1 text-xs font-mono font-bold">
+                        {d.code} (Save {d.rate}%)
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="space-y-6 mb-12">
                 {/* Date & Time Selection */}
                 <div className="bg-slate-50 border-2 border-slate-100 p-6 space-y-6">
@@ -332,9 +386,58 @@ function EventBooking() {
                 )}
               </div>
 
-              <div className="flex justify-between items-center bg-black text-white p-6 mb-8">
-                <span className="text-xs font-black uppercase tracking-[0.3em]">{t('tickets.order_summary')}</span>
-                <span className="unna text-3xl font-bold">${total.toFixed(2)}</span>
+              {/* Promo Code Input */}
+              <div className="p-6 bg-slate-50 border-2 border-slate-100 flex flex-col md:flex-row md:items-end justify-between gap-4 mt-6">
+                <div className="flex-1">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">Have a promo code?</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={promoInput}
+                      onChange={(e) => setPromoInput(e.target.value)}
+                      placeholder="Enter code"
+                      className="flex-1 px-4 py-2 border-2 border-slate-200 outline-none focus:border-black text-sm font-mono uppercase bg-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyPromo}
+                      className="px-6 py-2 bg-black text-white font-bold tracking-widest text-xs uppercase hover:bg-slate-800 transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  {promoError && <p className="text-xs text-red-600 font-semibold mt-2">{promoError}</p>}
+                  {appliedPromo && (
+                    <div className="flex items-center gap-2 text-xs text-emerald-800 font-semibold mt-2">
+                       <CheckCircle size={14} className="text-emerald-600" />
+                       Code applied: <span className="font-mono font-bold">{appliedPromo.code}</span> (Save {appliedPromo.rate}%)
+                       <button
+                         type="button"
+                         onClick={() => { setAppliedPromo(null); setPromoInput(''); }}
+                         className="text-slate-400 hover:text-black ml-1 underline"
+                       >
+                         Remove
+                       </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-black text-white p-6 my-8 space-y-3">
+                <div className="flex justify-between items-center text-sm border-b border-gray-800 pb-2">
+                  <span className="text-xs uppercase tracking-widest text-gray-400">Subtotal</span>
+                  <span className="font-bold">${subtotal.toFixed(2)}</span>
+                </div>
+                {appliedPromo && (
+                  <div className="flex justify-between items-center text-sm border-b border-gray-800 pb-2 text-amber-400">
+                    <span className="text-xs uppercase tracking-widest">Discount ({appliedPromo.code} -{appliedPromo.rate}%)</span>
+                    <span className="font-bold">-${discountAmount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-xs font-black uppercase tracking-[0.3em]">{t('tickets.order_summary')}</span>
+                  <span className="unna text-3xl font-bold">${total.toFixed(2)}</span>
+                </div>
               </div>
 
               <div className="flex justify-end">

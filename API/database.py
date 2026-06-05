@@ -130,3 +130,10 @@ class TicketOption(Base):
     name = Column(String, unique=True, index=True)
     code = Column(String, unique=True, index=True)
     price = Column(Float, default=0.0)
+
+class DiscountRate(Base):
+    __tablename__ = "discount_rates"
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String, unique=True, index=True)
+    rate = Column(Float, default=0.0)
+    is_active = Column(Boolean, default=True)

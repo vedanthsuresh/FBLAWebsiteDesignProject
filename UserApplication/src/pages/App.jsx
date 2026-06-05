@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import '../index.css'
 import Navigation from '../components/Navigation'
@@ -18,6 +19,26 @@ import { CartProvider } from '../context/CartContext'
 import CartSidebar from '../components/CartSidebar'
 
 function App() {
+  useEffect(() => {
+    let sessionId = sessionStorage.getItem('visitor_session_id');
+    if (!sessionId) {
+      sessionId = 'sess_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+      sessionStorage.setItem('visitor_session_id', sessionId);
+    }
+
+    const sendPing = () => {
+      fetch('http://127.0.0.1:8000/api/visitor/ping', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId })
+      }).catch(err => console.warn("Failed to ping visitor status:", err));
+    };
+
+    sendPing();
+    const interval = setInterval(sendPing, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <AuthProvider>
       <CartProvider>

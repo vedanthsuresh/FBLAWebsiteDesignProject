@@ -1,4 +1,4 @@
-import { Plus, Trash2, Calendar, LogOut, Palmtree, Image as ImageIcon, Mail, Save, Globe, Clock, ChevronDown, ChevronUp, Users, ShieldCheck, Eye, EyeOff, Pencil, X, Ticket } from "lucide-react";
+import { Plus, Trash2, Calendar, LogOut, Palmtree, Image as ImageIcon, Mail, Save, Globe, Clock, ChevronDown, ChevronUp, Users, ShieldCheck, Eye, EyeOff, Pencil, X, Ticket, Percent } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from 'react';
 
@@ -16,6 +16,8 @@ export default function Dashboard() {
   const [showMemberPassword, setShowMemberPassword] = useState(true);
   const [ticketOptions, setTicketOptions] = useState([]);
   const [newTicketOption, setNewTicketOption] = useState({ name: "", code: "", price: "" });
+  const [discountRates, setDiscountRates] = useState([]);
+  const [newDiscountRate, setNewDiscountRate] = useState({ code: "", rate: "" });
 
   const role = localStorage.getItem("admin_role");
   const token = localStorage.getItem("admin_token");
@@ -36,6 +38,15 @@ export default function Dashboard() {
     publish_at: new Date().toISOString().slice(0, 16)
   });
 
+  const [stats, setStats] = useState({ live_visitors: null, registered_members: null, tickets_booked_today: null });
+  const [bookings, setBookings] = useState([]);
+  const [bookingsDate, setBookingsDate] = useState(new Date().toISOString().split('T')[0]);
+  const [bookingsPage, setBookingsPage] = useState(1);
+  const [bookingsTotalPages, setBookingsTotalPages] = useState(1);
+  const [bookingsSearch, setBookingsSearch] = useState('');
+  const [bookingsCount, setBookingsCount] = useState(0);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editType, setEditType] = useState(""); // "event", "holiday", "artwork"
@@ -47,7 +58,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchData();
+    fetchStats();
+    const interval = setInterval(fetchStats, 10000);
+    return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [bookingsDate, bookingsPage, bookingsSearch]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -56,6 +74,7 @@ export default function Dashboard() {
       tasks.push(fetchUsers());
       tasks.push(fetchMembers());
       tasks.push(fetchTicketOptions());
+      tasks.push(fetchDiscountRates());
     }
     await Promise.all(tasks);
     setLoading(false);
@@ -151,6 +170,58 @@ export default function Dashboard() {
       if (Array.isArray(data)) setTicketOptions(data);
     } catch (error) {
       console.error("Error fetching ticket options:", error);
+    }
+  };
+
+  const fetchDiscountRates = async () => {
+    if (role !== "super_admin") return;
+    try {
+      const res = await fetch(`${API_URL}/tickets/discounts`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) setDiscountRates(data);
+    } catch (error) {
+      console.error("Error fetching discount rates:", error);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch(`${API_URL}/admin/statistics`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.error("Error fetching statistics:", error);
+    }
+  };
+
+  const fetchBookings = async () => {
+    setBookingsLoading(true);
+    try {
+      const queryParams = new URLSearchParams({
+        date_str: bookingsDate,
+        page: bookingsPage.toString(),
+        limit: '20',
+        search: bookingsSearch
+      });
+      const res = await fetch(`${API_URL}/admin/bookings?${queryParams.toString()}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBookings(data.bookings || []);
+        setBookingsTotalPages(data.total_pages || 1);
+        setBookingsCount(data.total_count || 0);
+      }
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+    } finally {
+      setBookingsLoading(false);
     }
   };
 
@@ -346,6 +417,55 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Error deleting ticket option:", error);
+    }
+  };
+
+  const handleCreateDiscountRate = async (e) => {
+    e.preventDefault();
+    if (!newDiscountRate.code || !newDiscountRate.rate) return;
+    if (role !== "super_admin") return;
+    try {
+      const res = await fetch(`${API_URL}/admin/tickets/discounts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          code: newDiscountRate.code.trim().toUpperCase(),
+          rate: parseFloat(newDiscountRate.rate) || 0.0,
+          is_active: true
+        }),
+      });
+      if (res.ok) {
+        alert("Discount rate created successfully");
+        setNewDiscountRate({ code: "", rate: "" });
+        fetchDiscountRates();
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to create discount rate: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error creating discount rate:", error);
+      alert("Network error while creating discount rate");
+    }
+  };
+
+  const handleDeleteDiscountRate = async (id) => {
+    if (!confirm("Are you sure you want to delete this discount rate?")) return;
+    try {
+      const res = await fetch(`${API_URL}/admin/tickets/discounts/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        fetchDiscountRates();
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to delete discount rate: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error deleting discount rate:", error);
     }
   };
 
@@ -596,11 +716,36 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 px-12 py-6 flex justify-between items-center">
-        <h1 className="text-2xl font-light tracking-tighter text-black flex items-center gap-4 uppercase">
+      <header className="bg-white border-b border-gray-100 px-12 py-6 flex flex-col md:flex-row justify-between items-center gap-6">
+        <h1 className="text-2xl font-light tracking-tighter text-black flex items-center gap-4 uppercase font-sans">
           <div className="bg-black text-white w-10 h-10 flex items-center justify-center font-bold text-xl">HM</div>
           Admin Dashboard
         </h1>
+
+        {/* Live Statistics Menu */}
+        <div className="flex items-center gap-8 bg-slate-50 border border-slate-100 px-6 py-3 rounded-none">
+          <div className="flex items-center gap-3">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Live Visitors</p>
+              <p className="text-sm font-bold text-black font-mono">{stats.live_visitors ?? '...'}</p>
+            </div>
+          </div>
+          <div className="h-6 w-[1px] bg-slate-200" />
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Total Members</p>
+            <p className="text-sm font-bold text-black font-mono">{stats.registered_members ?? '...'}</p>
+          </div>
+          <div className="h-6 w-[1px] bg-slate-200" />
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Bookings Today</p>
+            <p className="text-sm font-bold text-black font-mono">{stats.tickets_booked_today ?? '...'}</p>
+          </div>
+        </div>
+
         <button
           onClick={handleLogout}
           className="text-gray-400 hover:text-black flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-gray-100 px-4 py-2 hover:border-black"
@@ -629,6 +774,15 @@ export default function Dashboard() {
               {tab.icon} {tab.label}
             </button>
           ))}
+          <button
+            onClick={() => setActiveTab("bookings")}
+            className={`px-8 py-4 text-[10px] font-black uppercase tracking-[0.25em] transition-all border-b-2 whitespace-nowrap flex items-center gap-3 ${activeTab === "bookings"
+              ? "border-black text-black"
+              : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200"
+              }`}
+          >
+            <Ticket size={16} /> Daily Bookings
+          </button>
           {role === "super_admin" && (
             <>
               <button
@@ -658,12 +812,147 @@ export default function Dashboard() {
               >
                 <Ticket size={16} /> Ticket Options
               </button>
+              <button
+                onClick={() => setActiveTab("discounts")}
+                className={`px-8 py-4 text-[10px] font-black uppercase tracking-[0.25em] transition-all border-b-2 whitespace-nowrap flex items-center gap-3 ${activeTab === "discounts"
+                  ? "border-black text-black"
+                  : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200"
+                  }`}
+              >
+                <Percent size={16} /> Discount Rates
+              </button>
             </>
           )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {activeTab === "events" ? (
+          {activeTab === "bookings" ? (
+            <div className="lg:col-span-3 bg-white p-10 rounded-none shadow-sm border border-gray-100">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 pb-4 border-b border-black">
+                <div>
+                  <h2 className="text-xs font-black uppercase tracking-[0.3em] text-black">Daily Bookings Management</h2>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">
+                    {bookingsCount} {bookingsCount === 1 ? 'ticket' : 'tickets'} booked for this day
+                  </p>
+                </div>
+                
+                {/* Search & Date Controls */}
+                <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+                  <div className="flex items-center gap-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Date</label>
+                    <input
+                      type="date"
+                      value={bookingsDate}
+                      onChange={(e) => {
+                        setBookingsDate(e.target.value);
+                        setBookingsPage(1);
+                      }}
+                      className="border border-gray-200 px-3 py-1.5 text-xs focus:border-black outline-none bg-white font-mono"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Search</label>
+                    <input
+                      type="text"
+                      placeholder="Email or Event"
+                      value={bookingsSearch}
+                      onChange={(e) => {
+                        setBookingsSearch(e.target.value);
+                        setBookingsPage(1);
+                      }}
+                      className="border border-gray-200 px-3 py-1.5 text-xs focus:border-black outline-none bg-white"
+                    />
+                  </div>
+                  {(bookingsSearch || bookingsDate !== new Date().toISOString().split('T')[0]) && (
+                    <button
+                      onClick={() => {
+                        setBookingsSearch('');
+                        setBookingsDate(new Date().toISOString().split('T')[0]);
+                        setBookingsPage(1);
+                      }}
+                      className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black border border-gray-100 hover:border-black px-3 py-1.5 transition-all"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {bookingsLoading ? (
+                <div className="py-20 text-center text-gray-400 italic text-sm">Loading bookings...</div>
+              ) : bookings.length === 0 ? (
+                <div className="py-20 text-center text-gray-400 italic text-sm">No bookings found for the selected criteria.</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="text-gray-400 text-[10px] uppercase font-black tracking-widest">
+                      <tr className="border-b border-gray-100">
+                        <th className="px-4 py-4">Time</th>
+                        <th className="px-4 py-4">Visitor Email</th>
+                        <th className="px-4 py-4">Event/Ticket Title</th>
+                        <th className="px-4 py-4 font-mono text-[9px] text-right">Booking ID</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {bookings.map((booking) => {
+                        let timeString = 'N/A';
+                        if (booking.event_datetime) {
+                          try {
+                            const dateObj = new Date(booking.event_datetime);
+                            // Strip off offset formatting bugs if any
+                            timeString = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                          } catch (e) {
+                            console.error(e);
+                          }
+                        }
+                        return (
+                          <tr key={booking.id} className="hover:bg-gray-50 transition-all border-b border-gray-50 last:border-none">
+                            <td className="px-4 py-6 font-mono text-xs font-bold text-black uppercase">{timeString}</td>
+                            <td className="px-4 py-6 text-sm font-medium text-black">{booking.email}</td>
+                            <td className="px-4 py-6 text-sm text-gray-500 uppercase tracking-tight">{booking.event_title}</td>
+                            <td className="px-4 py-6 text-right font-mono text-[10px] text-gray-300">#{booking.id}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+
+                  {/* Pagination Controls */}
+                  {bookingsTotalPages > 1 && (
+                    <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-100">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        Page {bookingsPage} of {bookingsTotalPages}
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          disabled={bookingsPage <= 1}
+                          onClick={() => setBookingsPage(prev => Math.max(1, prev - 1))}
+                          className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all border ${
+                            bookingsPage <= 1
+                              ? 'border-gray-100 text-gray-300 cursor-not-allowed'
+                              : 'border-gray-200 text-gray-500 hover:border-black hover:text-black'
+                          }`}
+                        >
+                          Previous
+                        </button>
+                        <button
+                          disabled={bookingsPage >= bookingsTotalPages}
+                          onClick={() => setBookingsPage(prev => Math.min(bookingsTotalPages, prev + 1))}
+                          className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all border ${
+                            bookingsPage >= bookingsTotalPages
+                              ? 'border-gray-100 text-gray-300 cursor-not-allowed'
+                              : 'border-gray-200 text-gray-500 hover:border-black hover:text-black'
+                          }`}
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : activeTab === "events" ? (
             <>
               {/* Add New Event */}
               <div className="bg-white p-10 rounded-none shadow-sm h-fit border border-gray-100">
@@ -1169,6 +1458,75 @@ export default function Dashboard() {
                           onClick={() => handleDeleteTicketOption(opt.id)}
                           className="p-3 text-gray-200 hover:text-black hover:border-black border border-transparent transition-all"
                           title="Remove Option"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </>
+          ) : activeTab === "discounts" ? (
+            <>
+              {/* Add New Discount Rate */}
+              <div className="bg-white p-10 rounded-none shadow-sm h-fit border border-gray-100">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 text-black pb-2 border-b border-black w-fit">Add Discount Rate</h2>
+                <form onSubmit={handleCreateDiscountRate} className="space-y-6">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Promo Code</label>
+                    <input
+                      type="text"
+                      required
+                      value={newDiscountRate.code}
+                      onChange={(e) => setNewDiscountRate({ ...newDiscountRate, code: e.target.value })}
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm"
+                      placeholder="e.g. SAVE10"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Discount Rate (%)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      required
+                      value={newDiscountRate.rate}
+                      onChange={(e) => setNewDiscountRate({ ...newDiscountRate, rate: e.target.value })}
+                      className="w-full px-0 py-2 border-b border-gray-200 focus:border-black outline-none transition-all text-sm"
+                      placeholder="e.g. 10.0"
+                    />
+                  </div>
+                  <button type="submit" className="w-full bg-black text-white py-4 rounded-none font-bold text-[10px] uppercase tracking-[0.3em] hover:bg-gray-900 shadow-xl transition-all mt-4">
+                    Add Discount Rate
+                  </button>
+                </form>
+              </div>
+
+              <div className="lg:col-span-2 bg-white p-10 rounded-none shadow-sm border border-gray-100">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-8 text-black pb-2 border-b border-black w-fit">Active Discount Rates</h2>
+                <div className="divide-y divide-gray-50">
+                  {discountRates.length === 0 ? (
+                    <p className="text-sm text-gray-400 italic py-6">No discount rates configured.</p>
+                  ) : (
+                    discountRates.map((d) => (
+                      <div key={d.id} className="flex justify-between items-center py-6 px-2 hover:bg-gray-50 transition-all group">
+                        <div className="flex items-center gap-6">
+                          <div className="w-12 h-12 flex items-center justify-center border border-gray-200 text-gray-400 group-hover:border-black group-hover:text-black transition-all">
+                            <Percent size={20} />
+                          </div>
+                          <div>
+                            <p className="font-bold text-black uppercase tracking-tighter text-sm flex items-center gap-3">
+                              {d.code}
+                            </p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300 mt-1">
+                              Discount: {d.rate}% off
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteDiscountRate(d.id)}
+                          className="p-3 text-gray-200 hover:text-black hover:border-black border border-transparent transition-all"
+                          title="Remove Discount Rate"
                         >
                           <Trash2 size={16} />
                         </button>
