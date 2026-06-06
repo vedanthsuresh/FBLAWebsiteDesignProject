@@ -1,13 +1,13 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import {  AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+
 import Footer from '../components/Footer';
 import fiveStars from '../assets/images/five-stars.png';
 
 const API_URL = "http://127.0.0.1:8000/api";
 
 function Citations() {
-  const { t } = useTranslation();
+  
   const [artworks, setArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -72,7 +72,7 @@ function Citations() {
       {/* Hero Section */}
       <section className="relative h-[40vh] w-full flex items-center justify-center bg-black overflow-hidden">
         <div className="absolute inset-0 opacity-40">
-          <div className="w-full h-full bg-gradient-to-br from-slate-900 via-black to-slate-900" />
+          <div className="w-full h-full bg-linear-to-br from-slate-900 via-black to-slate-900" />
         </div>
         <div className="relative z-10 text-center px-8">
           <motion.h1
@@ -153,7 +153,7 @@ function Citations() {
                       key={i}
                       className="flex gap-6 items-start"
                     >
-                      <div className="w-24 h-24 flex-shrink-0 grayscale hover:grayscale-0 transition-all duration-500 overflow-hidden bg-slate-100 border border-slate-200">
+                      <div className="w-24 h-24 shrink-0 grayscale hover:grayscale-0 transition-all duration-500 overflow-hidden bg-slate-100 border border-slate-200">
                         <img
                           src={art.image_url}
                           alt={art.title}
@@ -178,7 +178,7 @@ function Citations() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                   {citations.multimedia.map((item, i) => (
                     <div key={i} className="flex gap-6 items-center">
-                      <div className="w-32 h-20 flex-shrink-0 bg-black overflow-hidden relative border border-slate-200">
+                      <div className="w-32 h-20 shrink-0 bg-black overflow-hidden relative border border-slate-200">
                         {item.isVideo ? (
                           <video className="w-full h-full object-cover opacity-50" muted autoPlay loop>
                             <source src={item.thumbnail} type="video/mp4" />
