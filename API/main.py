@@ -1053,6 +1053,11 @@ def visitor_ping(req: VisitorPingRequest):
     ACTIVE_VISITORS[req.session_id] = time.time()
     return {"status": "ok"}
 
+@app.get("/api/visitor/disconnect")
+def visitor_disconnect(session_id: str):
+    ACTIVE_VISITORS.pop(session_id, None)
+    return {"status": "ok"}
+
 @app.get("/api/admin/statistics")
 def get_admin_statistics(
     current_user: User = Depends(get_current_any_admin),
@@ -1070,9 +1075,9 @@ def get_admin_statistics(
         Booking.event_datetime <= end_of_today
     ).count()
 
-    # 3. Clean up active visitors older than 5 minutes (300 seconds)
+    # 3. Clean up active visitors older than 1 minute (60 seconds)
     now = time.time()
-    expired = [sess for sess, last_seen in ACTIVE_VISITORS.items() if now - last_seen > 300]
+    expired = [sess for sess, last_seen in ACTIVE_VISITORS.items() if now - last_seen > 60]
     for sess in expired:
         ACTIVE_VISITORS.pop(sess, None)
     

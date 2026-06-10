@@ -34,9 +34,22 @@ function App() {
       }).catch(err => console.warn("Failed to ping visitor status:", err));
     };
 
+    const sendDisconnect = () => {
+      fetch(`http://127.0.0.1:8000/api/visitor/disconnect?session_id=${sessionId}`, {
+        method: 'GET',
+        keepalive: true
+      }).catch(err => console.warn("Failed to send disconnect status:", err));
+    };
+
     sendPing();
     const interval = setInterval(sendPing, 30000);
-    return () => clearInterval(interval);
+
+    window.addEventListener('beforeunload', sendDisconnect);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', sendDisconnect);
+    };
   }, []);
 
   return (
